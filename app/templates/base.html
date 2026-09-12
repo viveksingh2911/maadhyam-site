@@ -31,11 +31,11 @@
   <div class="shell ticker-inner">
     <span class="ticker-label"><span class="pulse"></span> Notices</span>
     <div class="ticker-track">
-      <div class="ticker-move">
-        {% for pass_no in [1, 2] %}{% for n in ticker %}
-        <a href="/notifications/{{ n.slug }}">{% if n.level.value != 'info' %}<strong>{{ n.level.value|capitalize }}:</strong> {% endif %}{{ n.title }}</a>
-        {% endfor %}{% endfor %}
-      </div>
+      <ul class="ticker-list">
+        {% for n in ticker %}
+        <li><a href="/notifications/{{ n.slug }}">{% if n.level.value != 'info' %}<strong>{{ n.level.value|capitalize }}:</strong> {% endif %}{{ n.title }}</a></li>
+        {% endfor %}
+      </ul>
     </div>
     <a class="ticker-all" href="/notifications">All notices</a>
   </div>

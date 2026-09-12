@@ -28,7 +28,7 @@
   <div class="table-wrap">
     <table class="data">
       <thead>
-        <tr><th>Notice</th><th>Level</th><th>Status</th><th>Visible</th><th>Ticker</th><th></th></tr>
+        <tr><th>Notice</th><th>Level</th><th>Status</th><th>Visible</th><th>Notice bar</th><th></th></tr>
       </thead>
       <tbody>
         {% for n in notices %}
@@ -64,7 +64,7 @@
   {% else %}
   <div class="empty-state">
     <h3>No notices yet</h3>
-    <p>Notices appear in the ticker at the top of every page and on the notice board.</p>
+    <p>Notices appear in the notice bar at the top of every page and on the notice board.</p>
     <a class="btn mt-2" href="/admin/notifications/new">New notice</a>
   </div>
   {% endif %}
