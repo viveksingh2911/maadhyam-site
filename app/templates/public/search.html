@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <h1>Search</h1>
+    <form class="search-bar mt-2" method="get" action="/search" style="max-width:38rem">
+      <input class="input" type="search" name="q" value="{{ q }}" autofocus
+             placeholder="Try 'arbitration', 'mediation training', 'panel'">
+      <button class="btn" type="submit">{{ ico.icon('search', 16) }} Search</button>
+    </form>
+    {% if q %}<p class="small muted mt-2 mb-0">{{ total }} result{{ '' if total == 1 else 's' }} for &ldquo;{{ q }}&rdquo;.</p>{% endif %}
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell stack-lg">
+    {% if not q %}
+      <div class="empty">
+        <h3>What are you looking for?</h3>
+        <p class="mb-0">Search across events, notices, articles and pages.</p>
+      </div>
+    {% elif total == 0 %}
+      <div class="empty">
+        <h3>Nothing matched that search</h3>
+        <p class="mb-0">Try a shorter phrase, or browse <a href="/articles">the Knowledge Lab</a>.</p>
+      </div>
+    {% else %}
+      {% if events %}
+      <div>
+        <h2>Events</h2>
+        <div class="grid grid-3">{% for e in events %}{{ c.event_card(e) }}{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      {% if articles %}
+      <div>
+        <h2>Articles</h2>
+        <div class="grid grid-3">{% for a in articles %}{{ c.article_card(a) }}{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      {% if notices %}
+      <div>
+        <h2>Notices</h2>
+        <div class="stack">{% for n in notices %}{{ c.notice_item(n) }}{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      {% if pages %}
+      <div>
+        <h2>Pages</h2>
+        <ul class="aside-list">
+          {% for p in pages %}
+          <li><a href="/{{ p.slug }}">{{ p.title }}</a><small>{{ p.subtitle or '' }}</small></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

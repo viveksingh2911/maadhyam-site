@@ -1,0 +1,200 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% import "admin/_seo_panel.html" as seo %}
+{% block title %}{{ 'Edit event' if event else 'New event' }}{% endblock %}
+
+{% block topbar_actions %}
+{% if event %}
+<a class="btn btn-ghost btn-sm" href="/events/{{ event.slug }}" target="_blank" rel="noopener">View on site</a>
+<a class="btn btn-ghost btn-sm" href="/admin/events/{{ event.id }}/registrations">Registrations</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Saved. The sitemap and structured data updated automatically.</div>
+{% endif %}
+
+<form method="post" action="/admin/events/save">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if event %}<input type="hidden" name="id" value="{{ event.id }}">{% endif %}
+
+  <div class="editor-layout">
+    <div class="stack">
+      <div class="panel">
+        <h2>The essentials</h2>
+        <div class="field">
+          <label for="title">Event title</label>
+          <input class="input" id="title" name="title" required data-slug-source
+                 value="{{ event.title if event else '' }}" placeholder="National Conference on Commercial Mediation">
+          <span class="counter" data-counter-for="title" data-max="70"></span>
+        </div>
+
+        <div class="field">
+          <label for="slug">URL slug</label>
+          <input class="input mono" id="slug" name="slug" data-slug-target value="{{ event.slug if event else '' }}"
+                 placeholder="generated from the title">
+          <span class="hint">{{ site_url }}/events/<span class="mono">your-slug</span></span>
+        </div>
+
+        <div class="field">
+          <label for="summary">Short summary</label>
+          <textarea class="textarea" id="summary" name="summary" rows="3" style="min-height:5rem"
+                    placeholder="One or two sentences. Used on cards, in search results and on social previews.">{{ event.summary if event else '' }}</textarea>
+          <span class="counter" data-counter-for="summary" data-max="200" data-min="70"></span>
+        </div>
+
+        {{ seo.editor_field(event.body_md if event else '', 'Full description') }}
+      </div>
+
+      <div class="panel">
+        <h2>When and where</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="start_at">Starts</label>
+            <input class="input" id="start_at" name="start_at" type="datetime-local" required
+                   value="{{ event.start_at | dt_local if event else '' }}">
+          </div>
+          <div class="field">
+            <label for="end_at">Ends</label>
+            <input class="input" id="end_at" name="end_at" type="datetime-local"
+                   value="{{ event.end_at | dt_local if event else '' }}">
+          </div>
+          <div class="field">
+            <label for="timezone_name">Timezone</label>
+            <input class="input" id="timezone_name" name="timezone_name"
+                   value="{{ event.timezone_name if event else 'Asia/Kolkata' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="mode">Format</label>
+          <select class="select" id="mode" name="mode">
+            {% for value, label in [('in_person', 'In person'), ('online', 'Online'), ('hybrid', 'Hybrid')] %}
+            <option value="{{ value }}" {{ 'selected' if event and event.mode == value }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="venue_name">Venue</label>
+            <input class="input" id="venue_name" name="venue_name" value="{{ event.venue_name if event else '' }}">
+          </div>
+          <div class="field">
+            <label for="city">City</label>
+            <input class="input" id="city" name="city" value="{{ event.city if event else '' }}">
+          </div>
+          <div class="field">
+            <label for="country">Country</label>
+            <input class="input" id="country" name="country" value="{{ event.country if event else 'India' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="address">Street address</label>
+          <input class="input" id="address" name="address" value="{{ event.address if event else '' }}">
+          <span class="hint">Included in the Event structured data, which is what puts events in Google&rsquo;s event listings.</span>
+        </div>
+
+        <div class="field">
+          <label for="online_url">Joining link</label>
+          <input class="input" id="online_url" name="online_url" value="{{ event.online_url if event else '' }}"
+                 placeholder="https://meet.example.org/...">
+          <span class="hint">Shown only for online and hybrid events.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Attendance</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="capacity">Capacity</label>
+            <input class="input" id="capacity" name="capacity" type="number" min="1"
+                   value="{{ event.capacity if event and event.capacity else '' }}">
+          </div>
+          <div class="field">
+            <label for="price">Price</label>
+            <input class="input" id="price" name="price" value="{{ event.price if event else '' }}" placeholder="4,500">
+          </div>
+          <div class="field">
+            <label for="currency">Currency</label>
+            <input class="input" id="currency" name="currency" value="{{ event.currency if event else 'INR' }}">
+          </div>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="is_free" value="1" {{ 'checked' if not event or event.is_free }}>
+          <span>Free to attend<small>Overrides the price above.</small></span>
+        </label>
+
+        <div class="field mt-2">
+          <label for="registration_url">External registration link</label>
+          <input class="input" id="registration_url" name="registration_url"
+                 value="{{ event.registration_url if event else '' }}" placeholder="Leave blank to use the built-in form">
+          <span class="hint">Blank means visitors register through the form on the event page, and signups land in the admin portal.</span>
+        </div>
+
+        <div class="field">
+          <label for="organizer">Convened by</label>
+          <input class="input" id="organizer" name="organizer"
+                 value="{{ event.organizer if event else cfg.site_name }}">
+        </div>
+
+        <div class="field">
+          <label for="speakers">Speakers</label>
+          <textarea class="textarea" id="speakers" name="speakers" rows="4"
+                    placeholder="One per line:&#10;Justice (Retd.) Meera Krishnan - Chair, Advisory Council">{{ event.speakers if event else '' }}</textarea>
+          <span class="hint">One per line, formatted <span class="mono">Name - Role</span>. Each becomes a performer in the structured data.</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="stack">
+      <div class="panel">
+        <h2>Publish</h2>
+        {{ seo.status_field(event) }}
+        <div class="field">
+          <label for="category_id">Category</label>
+          <select class="select" id="category_id" name="category_id">
+            <option value="">Uncategorised</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}" {{ 'selected' if event and event.category_id == c.id }}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <label class="check">
+          <input type="checkbox" name="featured" value="1" {{ 'checked' if event and event.featured }}>
+          <span>Feature this event<small>Given priority on the homepage.</small></span>
+        </label>
+        <div class="row mt-2">
+          <button class="btn" type="submit">Save event</button>
+          <button class="btn btn-soft" type="submit" data-set-status="published">Save &amp; publish</button>
+        </div>
+        {% if event %}
+        <p class="tiny muted mt-2 mb-0">Last updated {{ event.updated_at | fmt_datetime }}</p>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h2>Cover image</h2>
+        {{ seo.image_field('cover_image', 'Image', event.cover_image if event else '', 'cover_alt',
+                           event.cover_alt if event else '', 'Used on cards, the event page and social previews.') }}
+      </div>
+
+      {{ seo.seo_panel(event, '/events', cfg, issues, score) }}
+    </aside>
+  </div>
+
+  <div class="savebar">
+    <a class="btn btn-ghost btn-sm" href="/admin/events">Back to events</a>
+    <span class="spacer"></span>
+    {% if event %}
+    <span class="tiny muted">Editing &ldquo;{{ event.title | truncate(40) }}&rdquo;</span>
+    {% endif %}
+    <button class="btn" type="submit">Save</button>
+  </div>
+</form>
+
+{{ seo.media_picker_dialog() }}
+{% endblock %}

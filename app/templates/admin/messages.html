@@ -1,0 +1,56 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('deleted') %}<div class="alert alert-success">{{ ico.icon('check', 17) }} Message deleted.</div>{% endif %}
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Contact enquiries</h2>
+    <span class="spacer"></span>
+    <span class="small muted">{{ counts.messages_unread }} unread</span>
+  </div>
+
+  {% if msgs %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>From</th><th>Message</th><th>Received</th><th></th></tr></thead>
+      <tbody>
+        {% for m in msgs %}
+        <tr style="{{ '' if m.is_read else 'background:var(--surface-2)' }}">
+          <td style="min-width:12rem">
+            <div class="cell-title">{{ m.name }}{% if not m.is_read %} <span class="badge badge-primary">New</span>{% endif %}</div>
+            <div class="cell-sub"><a href="mailto:{{ m.email }}">{{ m.email }}</a></div>
+            {% if m.phone %}<div class="cell-sub">{{ m.phone }}</div>{% endif %}
+          </td>
+          <td>
+            {% if m.subject %}<div class="cell-title">{{ m.subject }}</div>{% endif %}
+            <div class="small soft" style="white-space:pre-wrap">{{ m.message }}</div>
+          </td>
+          <td class="small nowrap">{{ m.created_at | fmt_date }}<div class="cell-sub">{{ m.created_at | time_ago }}</div></td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="mailto:{{ m.email }}?subject=Re: {{ m.subject or 'Your enquiry' }}">Reply</a>
+            <form method="post" action="/admin/messages/{{ m.id }}/read" style="display:inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-ghost btn-sm" type="submit">{{ 'Mark unread' if m.is_read else 'Mark read' }}</button>
+            </form>
+            <form method="post" action="/admin/messages/{{ m.id }}/delete" style="display:inline"
+                  data-confirm="Delete this message from {{ m.name }}?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No enquiries yet</h3>
+    <p class="mb-0">Messages sent through the contact form land here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

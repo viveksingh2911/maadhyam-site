@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <div class="row mb-2" style="gap:.45rem">
+      {% if event.is_past %}<span class="badge">Concluded</span>
+      {% else %}<span class="badge badge-primary badge-dot">{{ event.start_at | countdown }}</span>{% endif %}
+      {% if event.mode == 'online' %}<span class="badge badge-info">Online</span>
+      {% elif event.mode == 'hybrid' %}<span class="badge badge-info">Hybrid</span>{% endif %}
+      {% if event.category %}<span class="badge badge-accent">{{ event.category.name }}</span>{% endif %}
+      {% if event.is_free %}<span class="badge badge-success">Free to attend</span>{% endif %}
+    </div>
+    <h1>{{ event.title }}</h1>
+    {% if event.summary %}<p class="lede">{{ event.summary }}</p>{% endif %}
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell split">
+    <div>
+      {% if event.cover_image %}
+      <div class="article-cover" style="margin-top:0">
+        <img src="{{ event.cover_image }}" alt="{{ event.cover_alt or event.title }}">
+      </div>
+      {% endif %}
+
+      {% if registered %}
+      <div class="alert alert-success">{{ ico.icon('check', 18) }}
+        <div><strong>You are registered.</strong> A confirmation will follow by email.</div>
+      </div>
+      {% endif %}
+      {% if request.query_params.get('error') == 'email' %}
+      <div class="alert alert-danger">{{ ico.icon('alert', 18) }} That email address did not look valid.</div>
+      {% endif %}
+
+      {% if event.body_html %}
+        <div class="prose">{{ event.body_html | safe }}</div>
+      {% endif %}
+
+      {% if event.speaker_list %}
+      <h2 class="mt-3">Speakers and faculty</h2>
+      <div class="grid grid-3">
+        {% for s in event.speaker_list %}
+        <div class="card" style="padding:1.1rem 1.2rem">
+          <div class="row" style="gap:.8rem;flex-wrap:nowrap">
+            <span class="brand-mark" style="background:var(--primary-soft);color:var(--primary)">{{ s.split(' - ')[0] | initials }}</span>
+            <div>
+              <strong style="display:block">{{ s.split(' - ')[0] }}</strong>
+              {% if ' - ' in s %}<span class="small muted">{{ s.split(' - ', 1)[1] }}</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if not event.is_past %}
+      <div class="card mt-3" id="register" style="padding:clamp(1.4rem,3vw,2rem)">
+        <h2 style="margin-top:0">Register your place</h2>
+        {% if event.registration_url %}
+          <p class="soft">Registration for this event is handled on a separate page.</p>
+          <a class="btn btn-lg" href="{{ event.registration_url }}" rel="noopener" target="_blank">
+            Go to registration {{ ico.icon('arrow-up-right', 17) }}
+          </a>
+        {% else %}
+          <p class="soft">Tell us who is coming and we will hold a seat.</p>
+          <form method="post" action="/events/{{ event.slug }}/register" class="grid grid-2" style="gap:0 1rem">
+            <div class="field">
+              <label for="reg-name">Full name</label>
+              <input class="input" id="reg-name" name="name" required>
+            </div>
+            <div class="field">
+              <label for="reg-email">Email</label>
+              <input class="input" id="reg-email" type="email" name="email" required>
+            </div>
+            <div class="field">
+              <label for="reg-phone">Phone <span class="muted">(optional)</span></label>
+              <input class="input" id="reg-phone" name="phone">
+            </div>
+            <div class="field">
+              <label for="reg-org">Organisation <span class="muted">(optional)</span></label>
+              <input class="input" id="reg-org" name="organisation">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label for="reg-notes">Anything we should know?</label>
+              <textarea class="textarea" id="reg-notes" name="notes" rows="3" style="min-height:5rem"></textarea>
+            </div>
+            <div style="grid-column:1/-1">
+              <button class="btn btn-lg" type="submit">Confirm registration</button>
+            </div>
+          </form>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <aside class="stack">
+      <div class="aside-card">
+        <h3>Event details</h3>
+        <ul class="meta-list">
+          <li class="meta-item">{{ ico.icon('calendar', 17) }}
+            <div><strong>When</strong><span>{{ event.start_at | fmt_event_range(event.end_at) }}</span>
+            <span class="tiny muted" style="display:block">{{ event.timezone_name }}</span></div>
+          </li>
+          <li class="meta-item">{{ ico.icon('pin' if not event.is_online else 'globe', 17) }}
+            <div><strong>Where</strong><span>{{ event.location_line }}</span>
+            {% if event.address %}<span class="tiny muted" style="display:block">{{ event.address }}</span>{% endif %}</div>
+          </li>
+          {% if event.organizer %}
+          <li class="meta-item">{{ ico.icon('users', 17) }}
+            <div><strong>Convened by</strong><span>{{ event.organizer }}</span></div>
+          </li>
+          {% endif %}
+          <li class="meta-item">{{ ico.icon('ticket', 17) }}
+            <div><strong>Attendance</strong>
+              <span>{% if event.is_free %}Free{% else %}{{ event.price or 'On request' }} {{ event.currency }}{% endif %}</span>
+              {% if event.capacity %}<span class="tiny muted" style="display:block">{{ event.capacity }} seats</span>{% endif %}
+            </div>
+          </li>
+        </ul>
+
+        <div class="stack-sm mt-3">
+          {% if not event.is_past %}
+          <a class="btn btn-block" href="{{ event.registration_url or '#register' }}"
+             {% if event.registration_url %}rel="noopener" target="_blank"{% endif %}>Register</a>
+          {% endif %}
+          <a class="btn btn-ghost btn-block" href="/events/{{ event.slug }}/calendar.ics">
+            {{ ico.icon('download', 16) }} Add to calendar
+          </a>
+          <button class="btn btn-ghost btn-block" type="button" data-copy-link="{{ abs_url('/events/' ~ event.slug) }}">
+            {{ ico.icon('link', 16) }} Copy link
+          </button>
+        </div>
+      </div>
+
+      {% if event.is_online and event.online_url and not event.is_past %}
+      <div class="aside-card">
+        <h3>Joining online</h3>
+        <p class="small soft">The session runs online. The link opens at the scheduled time.</p>
+        <a class="btn btn-soft btn-block" href="{{ event.online_url }}" rel="noopener" target="_blank">Join the session</a>
+      </div>
+      {% endif %}
+
+      {% if related %}
+      <div class="aside-card">
+        <h3>Other events</h3>
+        <ul class="aside-list">
+          {% for e in related %}
+          <li>
+            <a href="/events/{{ e.slug }}">{{ e.title }}</a>
+            <small>{{ e.start_at | fmt_date }} &middot; {{ e.location_line }}</small>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,184 @@
+{# Reusable SEO sidebar for every content editor.
+
+   Every field here is optional. Left blank, the site derives the title from the
+   content title, the description from the excerpt/summary, the share image from
+   the cover image (or the site default), and the canonical URL from the slug. #}
+{% import "partials/icons.html" as ico %}
+
+{% macro seo_panel(obj, path_prefix, cfg, issues, score) %}
+<div class="panel">
+  <h2>Search preview</h2>
+  <p class="tiny muted">This is roughly how the page will look in Google. Everything updates as you type.</p>
+
+  <div class="serp mt-2" id="serp-preview"
+       data-site="{{ cfg.site_name }}"
+       data-title-template="{{ cfg.seo_title_template }}"
+       data-base="{{ site_url }}{{ path_prefix }}">
+    <div class="serp-url" data-serp-url></div>
+    <div class="serp-title" data-serp-title></div>
+    <div class="serp-desc" data-serp-desc></div>
+  </div>
+
+  {% if score is not none %}
+  <div class="row mt-3" style="gap:1rem;flex-wrap:nowrap">
+    <div class="score-ring score-{{ 'good' if score >= 90 else 'ok' if score >= 70 else 'poor' }}" style="--pct: {{ score }}">
+      <span>{{ score }}</span>
+    </div>
+    <div style="min-width:0">
+      <strong style="display:block">SEO health</strong>
+      <span class="small muted">
+        {% if not issues %}Nothing to fix. This page is ready to index.
+        {% else %}{{ issues | length }} thing{{ '' if issues | length == 1 else 's' }} worth improving.{% endif %}
+      </span>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if issues %}
+  <ul class="issue-list mt-2">
+    {% for i in issues %}
+    <li class="issue issue-{{ i.level }}">
+      {{ ico.icon('alert' if i.level == 'error' else 'info', 15) }}
+      <span><strong>{{ i.field | replace('_', ' ') }}:</strong> {{ i.message }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>SEO overrides</h2>
+  <p class="tiny muted">Leave these blank and they are generated from the content above.</p>
+
+  <div class="field mt-2">
+    <label for="meta_title">Meta title</label>
+    <input class="input" id="meta_title" name="meta_title" maxlength="255"
+           value="{{ obj.meta_title if obj and obj.meta_title else '' }}"
+           placeholder="Defaults to the title above">
+    <span class="counter" data-counter-for="meta_title" data-max="60" data-min="20"></span>
+  </div>
+
+  <div class="field">
+    <label for="meta_description">Meta description</label>
+    <textarea class="textarea" id="meta_description" name="meta_description" rows="3" maxlength="400"
+              style="min-height:5rem" placeholder="Defaults to the excerpt or the first lines of the body">{{ obj.meta_description if obj and obj.meta_description else '' }}</textarea>
+    <span class="counter" data-counter-for="meta_description" data-max="160" data-min="70"></span>
+  </div>
+
+  <div class="field">
+    <label for="focus_keyword">Focus keyword</label>
+    <input class="input" id="focus_keyword" name="focus_keyword"
+           value="{{ obj.focus_keyword if obj and obj.focus_keyword else '' }}"
+           placeholder="e.g. commercial mediation India">
+    <span class="hint">Optional. Used only to check the title and body actually mention it.</span>
+  </div>
+
+  <div class="field">
+    <label for="og_image">Social share image</label>
+    <div class="row" style="flex-wrap:nowrap">
+      <input class="input" id="og_image" name="og_image"
+             value="{{ obj.og_image if obj and obj.og_image else '' }}" placeholder="Defaults to the cover image">
+      <button class="btn btn-ghost btn-sm nowrap" type="button" data-pick-media="og_image">Choose</button>
+    </div>
+    <span class="hint">1200 x 630 works best on LinkedIn and X.</span>
+  </div>
+
+  <div class="field">
+    <label for="canonical_url">Canonical URL</label>
+    <input class="input" id="canonical_url" name="canonical_url"
+           value="{{ obj.canonical_url if obj and obj.canonical_url else '' }}"
+           placeholder="Only if this content lives elsewhere first">
+  </div>
+
+  <label class="check">
+    <input type="checkbox" name="noindex" value="1" {{ 'checked' if obj and obj.noindex }}>
+    <span>Hide from search engines
+      <small>Adds noindex and keeps this page out of the sitemap.</small>
+    </span>
+  </label>
+</div>
+{% endmacro %}
+
+
+{% macro media_picker_dialog() %}
+<div class="modal" id="media-picker" hidden>
+  <div class="panel modal-card">
+    <div class="row-between">
+      <h2 style="margin:0">Media library</h2>
+      <button class="icon-btn" type="button" data-picker-close aria-label="Close">&times;</button>
+    </div>
+    <div class="mt-2" data-picker-body></div>
+    <p class="tiny muted mt-2 mb-0">Need something new? <a href="/admin/media" target="_blank" rel="noopener">Upload it in the media library</a>.</p>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro status_field(obj, extra_hint='') %}
+<div class="field">
+  <label for="status">Status</label>
+  <select class="select" id="status" name="status">
+    {% for s in ['draft', 'published', 'scheduled', 'archived'] %}
+    <option value="{{ s }}" {{ 'selected' if obj and obj.status.value == s else ('selected' if not obj and s == 'draft' else '') }}>
+      {{ s | capitalize }}
+    </option>
+    {% endfor %}
+  </select>
+  <span class="hint">Only published items appear on the site, in the sitemap and in feeds.{{ ' ' ~ extra_hint }}</span>
+</div>
+{% endmacro %}
+
+
+{% macro image_field(field_id, label, value, alt_id=None, alt_value='', hint='') %}
+<div class="field">
+  <label for="{{ field_id }}">{{ label }}</label>
+  <div class="row" style="flex-wrap:nowrap">
+    <input class="input" id="{{ field_id }}" name="{{ field_id }}" value="{{ value or '' }}" placeholder="/static/uploads/...">
+    <button class="btn btn-ghost btn-sm nowrap" type="button"
+            data-pick-media="{{ field_id }}" {% if alt_id %}data-pick-alt="{{ alt_id }}"{% endif %}>Choose</button>
+  </div>
+  {% if hint %}<span class="hint">{{ hint }}</span>{% endif %}
+  <img data-media-thumb src="{{ value or '' }}" {{ 'hidden' if not value }} alt=""
+       style="margin-top:.5rem;max-height:7rem;border-radius:var(--r-sm);border:1px solid var(--border)">
+</div>
+{% if alt_id %}
+<div class="field">
+  <label for="{{ alt_id }}">Image alt text</label>
+  <input class="input" id="{{ alt_id }}" name="{{ alt_id }}" value="{{ alt_value or '' }}"
+         placeholder="Describe the image for screen readers and image search">
+</div>
+{% endif %}
+{% endmacro %}
+
+
+{% macro editor_field(value, label='Body', hint='Markdown. Headings, lists, links, quotes and tables all work.') %}
+<div class="field">
+  <div class="row-between" style="margin-bottom:.35rem">
+    <label for="body_md" style="margin:0">{{ label }}</label>
+    <div class="tabs" style="border:0;margin:0">
+      <button type="button" class="is-active" data-editor-tab="write">Write</button>
+      <button type="button" data-editor-tab="preview">Preview</button>
+    </div>
+  </div>
+  <div class="editor-toolbar">
+    <button type="button" data-md="bold" title="Bold"><strong>B</strong></button>
+    <button type="button" data-md="italic" title="Italic"><em>I</em></button>
+    <span class="sep"></span>
+    <button type="button" data-md="h2">H2</button>
+    <button type="button" data-md="h3">H3</button>
+    <span class="sep"></span>
+    <button type="button" data-md="ul">List</button>
+    <button type="button" data-md="ol">Numbered</button>
+    <button type="button" data-md="quote">Quote</button>
+    <span class="sep"></span>
+    <button type="button" data-md="link">Link</button>
+    <button type="button" data-md="image">Image</button>
+    <button type="button" data-md="table">Table</button>
+    <button type="button" data-md="hr">Divider</button>
+  </div>
+  <textarea class="textarea editor-area" id="body_md" name="body_md" data-editor
+            style="border-radius:0 0 var(--r-sm) var(--r-sm)">{{ value or '' }}</textarea>
+  <div class="editor-preview hidden" id="editor-preview"></div>
+  <span class="hint">{{ hint }}</span>
+</div>
+{% endmacro %}

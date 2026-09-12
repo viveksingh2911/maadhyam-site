@@ -1,0 +1,72 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Notifications{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-sm" href="/admin/notifications/new">{{ ico.icon('bell', 15) }} New notice</a>
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Notice deleted.</div>
+{% endif %}
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <form class="row" method="get" action="/admin/notifications" style="flex:1">
+      <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search notices" style="max-width:18rem">
+      <select class="select" name="status" style="max-width:11rem">
+        <option value="">Any status</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s | capitalize }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-ghost btn-sm" type="submit">Filter</button>
+      {% if q or status %}<a class="btn btn-ghost btn-sm" href="/admin/notifications">Reset</a>{% endif %}
+    </form>
+  </div>
+
+  {% if notices %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>Notice</th><th>Level</th><th>Status</th><th>Visible</th><th>Ticker</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for n in notices %}
+        <tr>
+          <td>
+            <div class="cell-title">
+              {% if n.pinned %}{{ ico.icon('pin-fill', 13) }}{% endif %}
+              <a href="/admin/notifications/{{ n.id }}/edit">{{ n.title }}</a>
+            </div>
+            <div class="cell-sub">{{ n.summary | truncate(80) if n.summary else '/notifications/' ~ n.slug }}</div>
+          </td>
+          <td><span class="badge badge-{{ n.level.value }}">{{ n.level.value | capitalize }}</span></td>
+          <td><span class="badge badge-{{ n.status.value }}">{{ n.status.value | capitalize }}</span></td>
+          <td class="small nowrap">
+            {{ n.published_at | fmt_date if n.published_at else 'not yet' }}
+            {% if n.expires_at %}<div class="cell-sub">until {{ n.expires_at | fmt_date }}</div>{% endif %}
+          </td>
+          <td class="small">{{ 'Yes' if n.show_in_ticker else 'No' }}</td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="/notifications/{{ n.slug }}" target="_blank" rel="noopener">View</a>
+            <a class="btn btn-ghost btn-sm" href="/admin/notifications/{{ n.id }}/edit">Edit</a>
+            <form method="post" action="/admin/notifications/{{ n.id }}/delete" style="display:inline"
+                  data-confirm="Delete &quot;{{ n.title }}&quot;?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No notices yet</h3>
+    <p>Notices appear in the ticker at the top of every page and on the notice board.</p>
+    <a class="btn mt-2" href="/admin/notifications/new">New notice</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <h1>{{ page.title }}</h1>
+    {% if page.subtitle %}<p class="lede">{{ page.subtitle }}</p>{% endif %}
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell">
+    {% if page.hero_image %}
+    <figure class="article-cover" style="margin-top:0">
+      <img src="{{ page.hero_image }}" alt="{{ page.title }}">
+    </figure>
+    {% endif %}
+    <div class="shell-narrow" style="width:100%;max-width:52rem;margin-inline:auto;padding:0">
+      <div class="prose">{{ page.body_html | safe }}</div>
+    </div>
+  </div>
+</section>
+
+{{ c.newsletter(cfg, request) }}
+{% endblock %}

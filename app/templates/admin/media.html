@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Media library{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('uploaded') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} {{ request.query_params.get('uploaded') }} file(s) uploaded.</div>
+{% endif %}
+{% if error == 'type' %}
+<div class="alert alert-danger">{{ ico.icon('alert', 17) }} That file type is not allowed. Accepted: {{ allowed | join(', ') }}.</div>
+{% elif error == 'size' %}
+<div class="alert alert-danger">{{ ico.icon('alert', 17) }} That file is larger than {{ max_mb }} MB.</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Upload</h2>
+  <form method="post" action="/admin/media/upload" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="dropzone mt-2">
+      {{ ico.icon('download', 26) }}
+      <p class="mt-1 mb-0"><strong>Drop files here</strong> or click to choose</p>
+      <p class="tiny mb-0">Up to {{ max_mb }} MB each &middot; {{ allowed | join(', ') }}</p>
+    </div>
+    <input class="visually-hidden" id="media-files" type="file" name="files" multiple>
+    <div class="field mt-2">
+      <label for="alt">Alt text for these files</label>
+      <input class="input" id="alt" name="alt" placeholder="Optional. Describe the image for screen readers.">
+    </div>
+    <button class="btn" type="submit">Upload</button>
+  </form>
+</div>
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Library</h2>
+    <span class="spacer"></span>
+    <span class="small muted">{{ items | length }} file{{ '' if items | length == 1 else 's' }}</span>
+  </div>
+  <div style="padding:1.25rem 1.35rem">
+    {% if items %}
+    <div class="media-grid">
+      {% for m in items %}
+      <div class="media-item">
+        <div class="media-thumb">
+          {% if m.is_image %}<img src="{{ m.url }}" alt="{{ m.alt or '' }}" loading="lazy">
+          {% else %}{{ ico.icon('file', 24) }}{% endif %}
+        </div>
+        <div class="media-info">
+          <strong title="{{ m.original_name }}">{{ m.original_name }}</strong>
+          <span class="muted">{{ m.size_label }} &middot; {{ m.created_at | fmt_date }}</span>
+        </div>
+        <div class="media-actions">
+          <a class="btn btn-ghost btn-sm" href="{{ m.url }}" target="_blank" rel="noopener">Open</a>
+          <form method="post" action="/admin/media/{{ m.id }}/delete" style="display:inline"
+                data-confirm="Delete {{ m.original_name }}? Anything using it will show a broken image.">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h3>Nothing uploaded yet</h3>
+      <p class="mb-0">Images you upload here can be picked from any content editor.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

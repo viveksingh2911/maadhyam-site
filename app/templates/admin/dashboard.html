@@ -1,0 +1,189 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="/admin/articles/new">New article</a>
+<a class="btn btn-sm" href="/admin/events/new">New event</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid cols-4">
+  <div class="tile">
+    <span class="label">Upcoming events</span>
+    <span class="value">{{ stats.upcoming_events }}</span>
+    <span class="note">{{ stats.new_registrations }} registration{{ '' if stats.new_registrations == 1 else 's' }} this week</span>
+  </div>
+  <div class="tile">
+    <span class="label">Live notices</span>
+    <span class="value">{{ stats.live_notices }}</span>
+    <span class="note">Shown in the site-wide ticker</span>
+  </div>
+  <div class="tile">
+    <span class="label">Published articles</span>
+    <span class="value">{{ stats.published_articles }}</span>
+    <span class="note">{{ stats.total_views }} total views</span>
+  </div>
+  <div class="tile">
+    <span class="label">Subscribers</span>
+    <span class="value">{{ stats.subscribers }}</span>
+    <span class="note">Newsletter list</span>
+  </div>
+</div>
+
+{% if not analytics_ready %}
+<div class="alert alert-warn">
+  {{ ico.icon('alert', 17) }}
+  <div>
+    <strong>Google Analytics is not connected yet.</strong>
+    Add your GA4 measurement ID in <a href="/admin/settings">Settings &rarr; Analytics</a> and every page starts reporting.
+  </div>
+</div>
+{% endif %}
+
+<div class="grid cols-2">
+  <div class="panel panel-flush">
+    <div class="panel-head">
+      <h2>Next on the calendar</h2>
+      <span class="spacer"></span>
+      <a class="small" href="/admin/events">All events</a>
+    </div>
+    {% if upcoming %}
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+          {% for e in upcoming %}
+          <tr>
+            <td style="width:4.5rem" class="tiny muted nowrap">{{ e.start_at.strftime('%d %b') }}</td>
+            <td>
+              <div class="cell-title"><a href="/admin/events/{{ e.id }}/edit">{{ e.title }}</a></div>
+              <div class="cell-sub">{{ e.location_line }}</div>
+            </td>
+            <td class="actions"><a class="btn btn-ghost btn-sm" href="/admin/events/{{ e.id }}/registrations">Registrations</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="border:0;background:none">
+      <h3>Nothing scheduled</h3>
+      <p class="mb-0"><a href="/admin/events/new">Create your first event</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="panel panel-flush">
+    <div class="panel-head">
+      <h2>SEO health</h2>
+      <span class="spacer"></span>
+      <a class="small" href="/admin/seo">Full report</a>
+    </div>
+    <div style="padding:1.25rem 1.35rem">
+      <div class="row" style="gap:1.1rem;flex-wrap:nowrap">
+        <div class="score-ring score-{{ health.band }}" style="--pct: {{ health.average }}"><span>{{ health.average }}</span></div>
+        <div>
+          <strong style="display:block">Average score across {{ health.total }} published page{{ '' if health.total == 1 else 's' }}</strong>
+          <span class="small muted">
+            {{ health.errors }} blocking issue{{ '' if health.errors == 1 else 's' }},
+            {{ health.warnings }} warning{{ '' if health.warnings == 1 else 's' }}
+          </span>
+        </div>
+      </div>
+      {% if health.rows %}
+      <ul class="issue-list mt-3">
+        {% for row in health.rows[:4] %}
+        <li class="issue issue-{{ 'error' if row.band == 'poor' else 'warn' if row.band == 'ok' else 'info' }}">
+          <span style="min-width:0">
+            <a href="{{ row.edit_url }}"><strong style="text-transform:none">{{ row.title | truncate(52) }}</strong></a>
+            <span class="muted"> &middot; {{ row.score }}/100</span>
+            {% if row.issues %}
+            <br><span class="muted">{{ row.issues[0].field | replace('_', ' ') | capitalize }}: {{ row.issues[0].message }}</span>
+            {% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="grid cols-2">
+  <div class="panel panel-flush">
+    <div class="panel-head">
+      <h2>Recent messages</h2>
+      <span class="spacer"></span>
+      <a class="small" href="/admin/messages">Inbox</a>
+    </div>
+    {% if recent_messages %}
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+          {% for m in recent_messages %}
+          <tr>
+            <td>
+              <div class="cell-title">{{ m.name }} {% if not m.is_read %}<span class="badge badge-primary">New</span>{% endif %}</div>
+              <div class="cell-sub">{{ m.subject or m.message | truncate(60) }}</div>
+            </td>
+            <td class="tiny muted nowrap">{{ m.created_at | time_ago }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="border:0;background:none"><p class="mb-0">No enquiries yet.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="panel panel-flush">
+    <div class="panel-head">
+      <h2>Latest registrations</h2>
+      <span class="spacer"></span>
+      <span class="small muted">{{ counts.registrations }} total</span>
+    </div>
+    {% if recent_regs %}
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+          {% for r in recent_regs %}
+          <tr>
+            <td>
+              <div class="cell-title">{{ r.name }}</div>
+              <div class="cell-sub">{{ r.email }}{% if r.organisation %} &middot; {{ r.organisation }}{% endif %}</div>
+            </td>
+            <td class="tiny muted nowrap">{{ r.created_at | time_ago }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="border:0;background:none"><p class="mb-0">No registrations yet.</p></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if drafts %}
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Drafts waiting on you</h2>
+    <span class="spacer"></span>
+    <a class="small" href="/admin/articles?status=draft">All drafts</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <tbody>
+        {% for a in drafts %}
+        <tr>
+          <td><div class="cell-title"><a href="/admin/articles/{{ a.id }}/edit">{{ a.title }}</a></div></td>
+          <td class="tiny muted nowrap">edited {{ a.updated_at | time_ago }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

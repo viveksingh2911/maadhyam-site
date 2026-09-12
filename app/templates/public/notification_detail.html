@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <div class="row mb-2" style="gap:.45rem">
+      <span class="badge badge-{{ 'danger' if note.level.value == 'urgent' else 'warn' if note.level.value == 'important' else 'info' }}">
+        {{ note.level.value | capitalize }}
+      </span>
+      {% if note.pinned %}<span class="badge badge-accent">Pinned</span>{% endif %}
+      <span class="badge">Issued {{ note.published_at | fmt_date }}</span>
+    </div>
+    <h1>{{ note.title }}</h1>
+    {% if note.summary %}<p class="lede">{{ note.summary }}</p>{% endif %}
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell split">
+    <div>
+      {% if note.expires_at %}
+      <div class="alert alert-info">{{ ico.icon('clock', 18) }}
+        <div>This notice remains in force until <strong>{{ note.expires_at | fmt_date }}</strong>.</div>
+      </div>
+      {% endif %}
+
+      {% if note.body_html %}
+        <div class="prose">{{ note.body_html | safe }}</div>
+      {% endif %}
+
+      <div class="row mt-3">
+        {% if note.link_url %}
+        <a class="btn" href="{{ note.link_url }}" rel="noopener" target="_blank">
+          {{ note.link_label or 'Open linked page' }} {{ ico.icon('arrow-up-right', 16) }}
+        </a>
+        {% endif %}
+        {% if note.attachment %}
+        <a class="btn btn-ghost" href="{{ note.attachment }}" download>
+          {{ ico.icon('download', 16) }} Download attachment
+        </a>
+        {% endif %}
+        <button class="btn btn-ghost" type="button" data-copy-link="{{ abs_url('/notifications/' ~ note.slug) }}">
+          {{ ico.icon('link', 16) }} Copy link
+        </button>
+      </div>
+    </div>
+
+    <aside class="stack">
+      {% if others %}
+      <div class="aside-card">
+        <h3>Other notices</h3>
+        <ul class="aside-list">
+          {% for n in others %}
+          <li>
+            <a href="/notifications/{{ n.slug }}">{{ n.title }}</a>
+            <small>{{ n.published_at | fmt_date }}</small>
+          </li>
+          {% endfor %}
+        </ul>
+        <a class="btn btn-ghost btn-sm btn-block mt-2" href="/notifications">All notices</a>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% import "partials/icons.html" as ico %}<!doctype html>
+<html lang="{{ cfg.site_language or 'en' }}" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f3a35" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1b2529" media="(prefers-color-scheme: dark)">
+{% include "partials/seo_head.html" %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="{{ static_url('/static/css/site.css') }}">
+{% if cfg.site_favicon %}<link rel="icon" href="{{ cfg.site_favicon }}">{% else %}<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">{% endif %}
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('mi-theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+{% include "partials/analytics.html" %}
+{% block head_extra %}{% endblock %}
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+{% if ticker %}
+<div class="ticker">
+  <div class="shell ticker-inner">
+    <span class="ticker-label"><span class="pulse"></span> Notices</span>
+    <div class="ticker-track">
+      <div class="ticker-move">
+        {% for pass_no in [1, 2] %}{% for n in ticker %}
+        <a href="/notifications/{{ n.slug }}">{% if n.level.value != 'info' %}<strong>{{ n.level.value|capitalize }}:</strong> {% endif %}{{ n.title }}</a>
+        {% endfor %}{% endfor %}
+      </div>
+    </div>
+    <a class="ticker-all" href="/notifications">All notices</a>
+  </div>
+</div>
+{% endif %}
+
+<header class="site-header">
+  <div class="shell">
+    <div class="header-inner">
+      <a class="brand" href="/">
+        {% if cfg.site_logo %}
+          <img class="brand-logo" src="{{ cfg.site_logo }}" alt="" width="86" height="107">
+        {% else %}
+          <span class="brand-mark" aria-hidden="true">MI</span>
+        {% endif %}
+        <span class="brand-text">
+          {{ cfg.site_name }}
+          <small>{{ cfg.site_tagline }}</small>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Primary">
+        <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>Home</a>
+        <a href="/events" {% if request.url.path.startswith('/events') %}aria-current="page"{% endif %}>Events</a>
+        <a href="/notifications" {% if request.url.path.startswith('/notifications') %}aria-current="page"{% endif %}>Notices</a>
+        <a href="/articles" {% if request.url.path.startswith('/articles') %}aria-current="page"{% endif %}>Knowledge Lab</a>
+        {% for p in nav_pages %}
+        <a href="/{{ p.slug }}" {% if request.url.path == '/' ~ p.slug %}aria-current="page"{% endif %}>{{ p.title }}</a>
+        {% endfor %}
+        <a href="/contact" {% if request.url.path == '/contact' %}aria-current="page"{% endif %}>Contact</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="icon-btn" href="/search" aria-label="Search the site">{{ ico.icon('search') }}</a>
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch colour theme">
+          <span data-theme-icon="light">{{ ico.icon('moon') }}</span>
+          <span data-theme-icon="dark" hidden>{{ ico.icon('sun') }}</span>
+        </button>
+        <button class="icon-btn nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu">
+          {{ ico.icon('menu') }}
+        </button>
+      </div>
+    </div>
+
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Mobile">
+      <a href="/">Home</a>
+      <a href="/events">Events</a>
+      <a href="/notifications">Notices</a>
+      <a href="/articles">Knowledge Lab</a>
+      {% for p in nav_pages %}<a href="/{{ p.slug }}">{{ p.title }}</a>{% endfor %}
+      <a href="/contact">Contact</a>
+      <a href="/search">Search</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <h4>{{ cfg.site_name }}</h4>
+        <p>{{ cfg.footer_note }}</p>
+        <div class="social-row mt-2">
+          {% if cfg.social_x %}<a href="{{ cfg.social_x }}" aria-label="X" rel="noopener" target="_blank">{{ ico.icon('x', 16) }}</a>{% endif %}
+          {% if cfg.social_linkedin %}<a href="{{ cfg.social_linkedin }}" aria-label="LinkedIn" rel="noopener" target="_blank">{{ ico.icon('linkedin', 16) }}</a>{% endif %}
+          {% if cfg.social_instagram %}<a href="{{ cfg.social_instagram }}" aria-label="Instagram" rel="noopener" target="_blank">{{ ico.icon('instagram', 16) }}</a>{% endif %}
+          {% if cfg.social_facebook %}<a href="{{ cfg.social_facebook }}" aria-label="Facebook" rel="noopener" target="_blank">{{ ico.icon('facebook', 16) }}</a>{% endif %}
+          {% if cfg.social_youtube %}<a href="{{ cfg.social_youtube }}" aria-label="YouTube" rel="noopener" target="_blank">{{ ico.icon('youtube', 16) }}</a>{% endif %}
+          {% if cfg.social_whatsapp %}<a href="{{ cfg.social_whatsapp }}" aria-label="WhatsApp" rel="noopener" target="_blank">{{ ico.icon('whatsapp', 16) }}</a>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <h4>Explore</h4>
+        <ul class="footer-links">
+          <li><a href="/events">Events</a></li>
+          <li><a href="/events?when=past">Past events</a></li>
+          <li><a href="/notifications">Notices</a></li>
+          <li><a href="/articles">Knowledge Lab</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Institution</h4>
+        <ul class="footer-links">
+          {% for p in nav_pages %}<li><a href="/{{ p.slug }}">{{ p.title }}</a></li>{% endfor %}
+          <li><a href="/contact">Contact us</a></li>
+          <li><a href="/rss.xml">RSS feed</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Reach us</h4>
+        <ul class="footer-links">
+          {% if cfg.contact_email %}<li><a href="mailto:{{ cfg.contact_email }}">{{ cfg.contact_email }}</a></li>{% endif %}
+          {% if cfg.contact_phone %}<li><a href="tel:{{ cfg.contact_phone | replace(' ', '') }}">{{ cfg.contact_phone }}</a></li>{% endif %}
+          {% if cfg.contact_address %}<li>{{ cfg.contact_address }}</li>{% endif %}
+          {% if cfg.contact_hours %}<li>{{ cfg.contact_hours }}</li>{% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; {{ current_year() }} {{ cfg.site_name }}. All rights reserved.</span>
+      <span>{{ cfg.footer_credit }}</span>
+    </div>
+  </div>
+</footer>
+
+{% if analytics.cookie_banner and (analytics.ga_id or analytics.gtm_id) %}
+<div class="cookie-bar" id="cookie-bar" hidden>
+  <p>We use Google Analytics to understand which pages are useful. Nothing loads until you agree.</p>
+  <div class="row">
+    <button class="btn btn-ghost btn-sm" type="button" data-consent="deny">Decline</button>
+    <button class="btn btn-sm" type="button" data-consent="accept">Accept</button>
+  </div>
+</div>
+{% endif %}
+
+<script src="{{ static_url('/static/js/site.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

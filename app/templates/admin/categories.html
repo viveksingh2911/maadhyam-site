@@ -1,0 +1,63 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}<div class="alert alert-success">{{ ico.icon('check', 17) }} Category saved.</div>{% endif %}
+{% if request.query_params.get('deleted') %}<div class="alert alert-success">{{ ico.icon('check', 17) }} Category deleted.</div>{% endif %}
+
+<div class="grid cols-2">
+  <div class="panel panel-flush">
+    <div class="panel-head"><h2>All categories</h2></div>
+    {% if cats %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Name</th><th>Applies to</th><th>Slug</th><th>In use</th><th></th></tr></thead>
+        <tbody>
+          {% for c in cats %}
+          <tr>
+            <td class="cell-title">{{ c.name }}</td>
+            <td><span class="badge">{{ c.kind | capitalize }}</span></td>
+            <td class="mono small">{{ c.slug }}</td>
+            <td class="small">{{ usage.get(c.kind, {}).get(c.id, 0) }}</td>
+            <td class="actions">
+              <form method="post" action="/admin/categories/{{ c.id }}/delete" style="display:inline"
+                    data-confirm="Delete the category &quot;{{ c.name }}&quot;? Content keeps its other fields.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state"><h3>No categories</h3><p class="mb-0">Add one on the right.</p></div>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Add a category</h2>
+    <form method="post" action="/admin/categories/save" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="field">
+        <label for="name">Name</label>
+        <input class="input" id="name" name="name" required placeholder="Arbitration">
+      </div>
+      <div class="field">
+        <label for="kind">Applies to</label>
+        <select class="select" id="kind" name="kind">
+          <option value="article">Articles</option>
+          <option value="event">Events</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea class="textarea" id="description" name="description" rows="2" style="min-height:4rem"></textarea>
+      </div>
+      <button class="btn" type="submit">Add category</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}SEO &amp; analytics{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="{{ sitemap_url }}" target="_blank" rel="noopener">sitemap.xml</a>
+<a class="btn btn-ghost btn-sm" href="{{ robots_url }}" target="_blank" rel="noopener">robots.txt</a>
+{% if user.is_admin %}<a class="btn btn-sm" href="/admin/settings#analytics">Analytics settings</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="grid cols-2">
+  <div class="panel">
+    <div class="row" style="gap:1.25rem;flex-wrap:nowrap">
+      <div class="score-ring score-{{ health.band }}" style="--pct: {{ health.average }};width:5.5rem;height:5.5rem">
+        <span style="font-size:1.35rem">{{ health.average }}</span>
+      </div>
+      <div>
+        <h2 style="margin-bottom:.2rem">Content health</h2>
+        <p class="small muted mb-0">
+          Averaged over {{ health.total }} published item{{ '' if health.total == 1 else 's' }}.
+          {{ health.errors }} blocking, {{ health.warnings }} worth fixing.
+        </p>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <h3>What runs automatically</h3>
+      <ul class="issue-list mt-1">
+        <li class="issue issue-info">{{ ico.icon('check', 15) }}<span>Titles, descriptions, canonical URLs and Open Graph tags are generated for every page.</span></li>
+        <li class="issue issue-info">{{ ico.icon('check', 15) }}<span>JSON-LD structured data: Organization, WebSite, BreadcrumbList, Event, Article and SpecialAnnouncement.</span></li>
+        <li class="issue issue-info">{{ ico.icon('check', 15) }}<span><span class="mono">sitemap.xml</span>, <span class="mono">robots.txt</span> and <span class="mono">rss.xml</span> regenerate from live content on every request.</span></li>
+        <li class="issue issue-info">{{ ico.icon('check', 15) }}<span>Reading time, excerpts and slugs derive themselves when you leave them blank.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Setup checklist</h2>
+    <div class="mt-2">
+      {% for c in checks %}
+      <div class="check-row">
+        <span class="check-mark {{ '' if c.ok else 'is-off' }}">{{ ico.icon('check' if c.ok else 'alert', 13) }}</span>
+        <span>
+          <strong style="font-weight:600">{{ c.label }}</strong>
+          {% if not c.ok %}<br><span class="muted small">{{ c.hint }}</span>{% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="row mt-3">
+      <a class="btn btn-ghost btn-sm" href="https://search.google.com/search-console" target="_blank" rel="noopener">
+        Open Search Console {{ ico.icon('arrow-up-right', 14) }}
+      </a>
+      <a class="btn btn-ghost btn-sm" href="https://analytics.google.com/" target="_blank" rel="noopener">
+        Open Google Analytics {{ ico.icon('arrow-up-right', 14) }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Every published page, worst first</h2>
+    <span class="spacer"></span>
+    <a class="small" href="{{ rss_url }}" target="_blank" rel="noopener">RSS feed</a>
+  </div>
+  {% if health.rows %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Score</th><th>Page</th><th>Type</th><th>Issues</th><th></th></tr></thead>
+      <tbody>
+        {% for row in health.rows %}
+        <tr>
+          <td>
+            <span class="badge badge-{{ 'published' if row.band == 'good' else 'important' if row.band == 'ok' else 'urgent' }}">
+              {{ row.score }}
+            </span>
+          </td>
+          <td>
+            <div class="cell-title"><a href="{{ row.edit_url }}">{{ row.title | truncate(70) }}</a></div>
+            <div class="cell-sub mono">{{ row.public_url }}</div>
+          </td>
+          <td class="small">{{ row.kind }}</td>
+          <td class="small">
+            {% if row.issues %}
+              <ul class="issue-list">
+                {% for i in row.issues[:3] %}
+                <li class="issue issue-{{ i.level }}" style="padding:.3rem .5rem">
+                  <span><strong>{{ i.field | replace('_', ' ') }}:</strong> {{ i.message }}</span>
+                </li>
+                {% endfor %}
+                {% if row.issues | length > 3 %}<li class="tiny muted">+{{ row.issues | length - 3 }} more</li>{% endif %}
+              </ul>
+            {% else %}
+              <span class="muted">Clean</span>
+            {% endif %}
+          </td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="{{ row.public_url }}" target="_blank" rel="noopener">View</a>
+            <a class="btn btn-ghost btn-sm" href="{{ row.edit_url }}">Fix</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>Nothing published yet</h3>
+    <p class="mb-0">Publish an event, notice or article and it is audited here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

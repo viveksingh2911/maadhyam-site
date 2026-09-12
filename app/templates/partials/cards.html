@@ -1,0 +1,169 @@
+{% import "partials/icons.html" as ico %}
+
+{% macro cover(src, alt, fallback_text) %}
+<div class="card-media">
+  {% if src %}
+    <img src="{{ src }}" alt="{{ alt or '' }}" loading="lazy" decoding="async">
+  {% else %}
+    <div class="card-media-fallback" aria-hidden="true">{{ (fallback_text or '')[:2] | upper }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{% macro event_card(e) %}
+<article class="card" data-reveal>
+  {{ cover(e.cover_image, e.cover_alt, e.title) }}
+  <div class="card-body">
+    <div class="row" style="gap:.45rem">
+      {% if e.is_past %}
+        <span class="badge">Concluded</span>
+      {% else %}
+        <span class="badge badge-primary badge-dot">{{ e.start_at | countdown }}</span>
+      {% endif %}
+      {% if e.mode == 'online' %}<span class="badge badge-info">Online</span>
+      {% elif e.mode == 'hybrid' %}<span class="badge badge-info">Hybrid</span>{% endif %}
+      {% if e.category %}<span class="badge badge-accent">{{ e.category.name }}</span>{% endif %}
+    </div>
+    <h3 class="card-title"><a href="/events/{{ e.slug }}">{{ e.title }}</a></h3>
+    {% if e.summary %}<p class="card-text clamp-2">{{ e.summary }}</p>{% endif %}
+    <div class="card-meta">
+      <span class="row" style="gap:.35rem">{{ ico.icon('calendar', 14) }} {{ e.start_at | fmt_date }}</span>
+      <span class="row" style="gap:.35rem">{{ ico.icon('pin', 14) }} {{ e.location_line }}</span>
+    </div>
+  </div>
+</article>
+{% endmacro %}
+
+
+{% macro event_row(e) %}
+<div class="event-row">
+  <div class="date-block">
+    <span class="d">{{ e.start_at.strftime('%d') }}</span>
+    <span class="m">{{ e.start_at.strftime('%b') }}</span>
+    <span class="y">{{ e.start_at.strftime('%Y') }}</span>
+  </div>
+  <div class="flex-1">
+    <h3 style="font-size:1.05rem;font-family:var(--font-body);font-weight:600;letter-spacing:0;margin:0 0 .3rem">
+      <a href="/events/{{ e.slug }}" style="color:inherit;text-decoration:none">{{ e.title }}</a>
+    </h3>
+    <p class="small soft mb-0 clamp-2">{{ e.summary or '' }}</p>
+    <div class="card-meta" style="margin-top:.5rem">
+      <span class="row" style="gap:.35rem">{{ ico.icon('clock', 14) }} {{ e.start_at.strftime('%I:%M %p').lstrip('0') }}</span>
+      <span class="row" style="gap:.35rem">{{ ico.icon('pin', 14) }} {{ e.location_line }}</span>
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro article_card(a) %}
+<article class="card" data-reveal>
+  {{ cover(a.cover_image, a.cover_alt, a.title) }}
+  <div class="card-body">
+    <div class="row" style="gap:.45rem">
+      {% if a.category %}<span class="badge badge-primary">{{ a.category.name }}</span>{% endif %}
+      {% if a.source_name %}<span class="badge">{{ a.source_name }}</span>{% endif %}
+    </div>
+    <h3 class="card-title"><a href="/articles/{{ a.slug }}">{{ a.title }}</a></h3>
+    {% if a.excerpt %}<p class="card-text clamp-3">{{ a.excerpt }}</p>{% endif %}
+    <div class="card-meta">
+      <span>{{ a.published_at | fmt_date }}</span>
+      {% if not a.is_link_post %}<span>{{ a.reading_minutes }} min read</span>{% endif %}
+      {% if a.is_link_post %}<span class="row" style="gap:.3rem">{{ ico.icon('arrow-up-right', 13) }} External</span>{% endif %}
+    </div>
+  </div>
+</article>
+{% endmacro %}
+
+
+{% macro notice_item(n) %}
+<div class="notice notice-{{ n.level.value }}">
+  <div style="color:var({{ '--danger' if n.level.value == 'urgent' else '--warn' if n.level.value == 'important' else '--info' }});flex:none;margin-top:.15rem">
+    {{ ico.icon('alert' if n.level.value != 'info' else 'info', 18) }}
+  </div>
+  <div class="flex-1">
+    <h3><a href="/notifications/{{ n.slug }}">{{ n.title }}</a></h3>
+    {% if n.summary %}<p class="clamp-2">{{ n.summary }}</p>{% endif %}
+    <div class="notice-meta">
+      {% if n.pinned %}<span class="badge badge-accent">Pinned</span>{% endif %}
+      <span>{{ n.published_at | fmt_date }}</span>
+      {% if n.expires_at %}<span>Valid until {{ n.expires_at | fmt_date }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+{% endmacro %}
+
+
+{% macro pagination(pg, base_url, params='') %}
+{% if pg.pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if pg.has_prev %}
+    <a href="{{ base_url }}?{{ params }}page={{ pg.page - 1 }}" rel="prev">Previous</a>
+  {% else %}
+    <span class="is-disabled">Previous</span>
+  {% endif %}
+  {% if 1 not in pg.window %}
+    <a href="{{ base_url }}?{{ params }}page=1">1</a>
+    {% if 2 not in pg.window %}<span class="is-disabled">...</span>{% endif %}
+  {% endif %}
+  {% for p in pg.window %}
+    {% if p == pg.page %}
+      <span class="is-current" aria-current="page">{{ p }}</span>
+    {% else %}
+      <a href="{{ base_url }}?{{ params }}page={{ p }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if pg.pages not in pg.window %}
+    {% if pg.pages - 1 not in pg.window %}<span class="is-disabled">...</span>{% endif %}
+    <a href="{{ base_url }}?{{ params }}page={{ pg.pages }}">{{ pg.pages }}</a>
+  {% endif %}
+  {% if pg.has_next %}
+    <a href="{{ base_url }}?{{ params }}page={{ pg.page + 1 }}" rel="next">Next</a>
+  {% else %}
+    <span class="is-disabled">Next</span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+
+{% macro breadcrumbs(trail) %}
+{% if trail and trail | length > 1 %}
+<nav class="crumbs" aria-label="Breadcrumb">
+  <ol>
+    {% for label, url in trail %}
+      <li>{% if not loop.last %}<a href="{{ url }}">{{ label }}</a>{% else %}<span aria-current="page">{{ label | truncate(60) }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</nav>
+{% endif %}
+{% endmacro %}
+
+
+{% macro newsletter(cfg, request) %}
+<section class="section" id="newsletter">
+  <div class="shell">
+    <div class="newsletter">
+      <div>
+        <h2>{{ cfg.newsletter_heading }}</h2>
+        <p>{{ cfg.newsletter_body }}</p>
+      </div>
+      <div>
+        {% if request.query_params.get('subscribe') == 'ok' %}
+          <div class="alert alert-success" style="background:transparent;border-color:currentColor">You are on the list. Thank you.</div>
+        {% elif request.query_params.get('subscribe') == 'invalid' %}
+          <div class="alert alert-danger" style="background:transparent;border-color:currentColor">That email address did not look right.</div>
+        {% endif %}
+        <form method="post" action="/subscribe">
+          <input type="hidden" name="source" value="{{ request.url.path }}">
+          <label class="visually-hidden" for="newsletter-email">Email address</label>
+          <input class="input" id="newsletter-email" type="email" name="email" required placeholder="you@organisation.org">
+          <button class="btn" type="submit">Subscribe</button>
+        </form>
+        <p class="tiny mt-1" style="opacity:.7">No spam. Unsubscribe whenever you like.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endmacro %}

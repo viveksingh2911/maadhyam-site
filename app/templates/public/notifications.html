@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <span class="eyebrow">{{ ico.icon('bell', 14) }} Notice board</span>
+    <h1>Notifications and notices</h1>
+    <p>Circulars, panel updates, deadlines and announcements from {{ cfg.site_name }}.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell stack-lg">
+    <div class="row-between">
+      <form class="search-bar" method="get" action="/notifications" style="flex:1;max-width:34rem">
+        <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search notices">
+        {% if level %}<input type="hidden" name="level" value="{{ level }}">{% endif %}
+        <button class="btn" type="submit">{{ ico.icon('search', 16) }}<span class="visually-hidden">Search</span></button>
+      </form>
+      <div class="chip-row">
+        <a class="chip {{ 'is-active' if not level }}" href="/notifications">All</a>
+        {% for l in levels %}
+        <a class="chip {{ 'is-active' if level == l }}" href="/notifications?level={{ l }}">{{ l | capitalize }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if notices %}
+      <div class="stack">
+        {% for n in notices %}{{ c.notice_item(n) }}{% endfor %}
+      </div>
+      {{ c.pagination(pg, '/notifications', ('q=' ~ q ~ '&' if q else '') ~ ('level=' ~ level ~ '&' if level else '')) }}
+    {% else %}
+      <div class="empty">
+        <h3>No notices right now</h3>
+        <p class="mb-0">Anything urgent will appear here and in the banner at the top of every page.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

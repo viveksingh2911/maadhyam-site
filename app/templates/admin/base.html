@@ -1,0 +1,108 @@
+{% import "partials/icons.html" as ico %}<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block title %}Admin{% endblock %} &middot; {{ cfg.site_name }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="{{ static_url('/static/css/admin.css') }}">
+<link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem('mi-theme');
+      if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>
+</head>
+<body>
+<div class="admin">
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="/admin">
+      <span class="sidebar-mark">MI</span>
+      <span>
+        <strong>{{ cfg.site_name }}</strong>
+        <small>Control room</small>
+      </span>
+    </a>
+
+    <nav class="side-group">
+      <span class="side-label">Overview</span>
+      <a class="side-link {{ 'is-active' if active == 'dashboard' }}" href="/admin">{{ ico.icon('sparkle', 17) }} Dashboard</a>
+      <a class="side-link {{ 'is-active' if active == 'seo' }}" href="/admin/seo">{{ ico.icon('search', 17) }} SEO &amp; analytics</a>
+    </nav>
+
+    <nav class="side-group">
+      <span class="side-label">Content</span>
+      <a class="side-link {{ 'is-active' if active == 'events' }}" href="/admin/events">
+        {{ ico.icon('calendar', 17) }} Events <span class="count">{{ counts.events }}</span>
+      </a>
+      <a class="side-link {{ 'is-active' if active == 'notifications' }}" href="/admin/notifications">
+        {{ ico.icon('bell', 17) }} Notifications <span class="count">{{ counts.notifications }}</span>
+      </a>
+      <a class="side-link {{ 'is-active' if active == 'articles' }}" href="/admin/articles">
+        {{ ico.icon('book', 17) }} Articles <span class="count">{{ counts.articles }}</span>
+      </a>
+      <a class="side-link {{ 'is-active' if active == 'pages' }}" href="/admin/pages">
+        {{ ico.icon('file', 17) }} Pages <span class="count">{{ counts.pages }}</span>
+      </a>
+      <a class="side-link {{ 'is-active' if active == 'categories' }}" href="/admin/categories">{{ ico.icon('link', 17) }} Categories</a>
+      <a class="side-link {{ 'is-active' if active == 'media' }}" href="/admin/media">
+        {{ ico.icon('file', 17) }} Media <span class="count">{{ counts.media }}</span>
+      </a>
+    </nav>
+
+    <nav class="side-group">
+      <span class="side-label">People</span>
+      <a class="side-link {{ 'is-active' if active == 'messages' }}" href="/admin/messages">
+        {{ ico.icon('mail', 17) }} Messages
+        {% if counts.messages_unread %}<span class="count is-alert">{{ counts.messages_unread }}</span>{% endif %}
+      </a>
+      <a class="side-link {{ 'is-active' if active == 'subscribers' }}" href="/admin/subscribers">
+        {{ ico.icon('users', 17) }} Subscribers <span class="count">{{ counts.subscribers }}</span>
+      </a>
+      {% if user.is_admin %}
+      <a class="side-link {{ 'is-active' if active == 'users' }}" href="/admin/users">{{ ico.icon('users', 17) }} Team</a>
+      <a class="side-link {{ 'is-active' if active == 'settings' }}" href="/admin/settings">{{ ico.icon('scale', 17) }} Settings</a>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-foot">
+      <a class="side-link" href="/" target="_blank" rel="noopener">{{ ico.icon('arrow-up-right', 17) }} View site</a>
+      <div class="sidebar-user">
+        <span>{{ user.name | initials }}</span>
+        <span style="min-width:0">
+          <strong style="display:block;font-size:.82rem;font-weight:600">{{ user.name }}</strong>
+          <small style="opacity:.6;font-size:.72rem">{{ user.role.value | capitalize }}</small>
+        </span>
+      </div>
+      <a class="side-link" href="/admin/logout">{{ ico.icon('close', 17) }} Sign out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="topbar">
+      <h1>{% block heading %}{{ self.title() }}{% endblock %}</h1>
+      <span class="spacer"></span>
+      {% block topbar_actions %}{% endblock %}
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Switch theme">
+        <span data-theme-icon="light">{{ ico.icon('moon', 16) }}</span>
+        <span data-theme-icon="dark" hidden>{{ ico.icon('sun', 16) }}</span>
+      </button>
+    </header>
+
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script src="{{ static_url('/static/js/admin.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

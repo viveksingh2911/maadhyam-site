@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% import "admin/_seo_panel.html" as seo %}
+{% block title %}{{ 'Edit page' if page else 'New page' }}{% endblock %}
+
+{% block topbar_actions %}
+{% if page %}<a class="btn btn-ghost btn-sm" href="/{{ page.slug }}" target="_blank" rel="noopener">View on site</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Saved.</div>
+{% endif %}
+
+<form method="post" action="/admin/pages/save">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if page %}<input type="hidden" name="id" value="{{ page.id }}">{% endif %}
+
+  <div class="editor-layout">
+    <div class="stack">
+      <div class="panel">
+        <div class="field">
+          <label for="title">Page title</label>
+          <input class="input" id="title" name="title" required data-slug-source value="{{ page.title if page else '' }}">
+          <span class="counter" data-counter-for="title" data-max="70"></span>
+        </div>
+        <div class="field">
+          <label for="slug">URL slug</label>
+          <input class="input mono" id="slug" name="slug" data-slug-target value="{{ page.slug if page else '' }}">
+          <span class="hint">{{ site_url }}/<span class="mono">your-slug</span> &mdash; avoid <span class="mono">events</span>,
+            <span class="mono">articles</span>, <span class="mono">notifications</span>, <span class="mono">admin</span>.</span>
+        </div>
+        <div class="field">
+          <label for="subtitle">Subtitle</label>
+          <input class="input" id="subtitle" name="subtitle" value="{{ page.subtitle if page else '' }}"
+                 placeholder="One line under the heading. Doubles as the meta description if you leave that blank.">
+        </div>
+
+        {{ seo.editor_field(page.body_md if page else '', 'Page content') }}
+      </div>
+    </div>
+
+    <aside class="stack">
+      <div class="panel">
+        <h2>Publish</h2>
+        {{ seo.status_field(page) }}
+        <label class="check">
+          <input type="checkbox" name="show_in_nav" value="1" {{ 'checked' if page and page.show_in_nav }}>
+          <span>Show in the main menu<small>Appears in the header and footer.</small></span>
+        </label>
+        <div class="field mt-2">
+          <label for="nav_order">Menu order</label>
+          <input class="input" id="nav_order" name="nav_order" type="number"
+                 value="{{ page.nav_order if page else 100 }}">
+          <span class="hint">Lower numbers come first.</span>
+        </div>
+        <div class="row mt-2">
+          <button class="btn" type="submit">Save page</button>
+          <button class="btn btn-soft" type="submit" data-set-status="published">Save &amp; publish</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Hero image</h2>
+        {{ seo.image_field('hero_image', 'Image', page.hero_image if page else '') }}
+      </div>
+
+      {{ seo.seo_panel(page, '', cfg, issues, score) }}
+    </aside>
+  </div>
+
+  <div class="savebar">
+    <a class="btn btn-ghost btn-sm" href="/admin/pages">Back to pages</a>
+    <span class="spacer"></span>
+    <button class="btn" type="submit">Save</button>
+  </div>
+</form>
+
+{{ seo.media_picker_dialog() }}
+{% endblock %}

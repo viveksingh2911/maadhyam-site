@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Team{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}<div class="alert alert-success">{{ ico.icon('check', 17) }} Saved.</div>{% endif %}
+{% if error == 'email' %}<div class="alert alert-danger">{{ ico.icon('alert', 17) }} That email address is already in use.</div>
+{% elif error == 'weak' %}<div class="alert alert-danger">{{ ico.icon('alert', 17) }} Passwords must be at least 10 characters.</div>
+{% elif error == 'password' %}<div class="alert alert-danger">{{ ico.icon('alert', 17) }} New accounts need a password.</div>
+{% elif error == 'self' %}<div class="alert alert-danger">{{ ico.icon('alert', 17) }} You cannot delete your own account.</div>
+{% endif %}
+
+<div class="grid cols-2">
+  <div class="panel panel-flush">
+    <div class="panel-head"><h2>Accounts</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Name</th><th>Role</th><th>Active</th><th>Last sign-in</th><th></th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="cell-title">{{ u.name }}{% if u.id == user.id %} <span class="badge badge-primary">you</span>{% endif %}</div>
+              <div class="cell-sub">{{ u.email }}</div>
+            </td>
+            <td><span class="badge {{ 'badge-accent' if u.is_admin else '' }}">{{ u.role.value | capitalize }}</span></td>
+            <td class="small">{{ 'Yes' if u.is_active else 'Suspended' }}</td>
+            <td class="small nowrap">{{ u.last_login_at | fmt_date if u.last_login_at else 'never' }}</td>
+            <td class="actions">
+              <form method="post" action="/admin/users/{{ u.id }}/delete" style="display:inline"
+                    data-confirm="Remove {{ u.name }}? Their articles stay, but lose the author byline.">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="btn btn-danger btn-sm" type="submit" {{ 'disabled' if u.id == user.id }}>Remove</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Add or update someone</h2>
+    <p class="small muted">Entering an existing email updates that account. Leave the password blank to keep the current one.</p>
+    <form method="post" action="/admin/users/save" class="mt-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="field">
+        <label for="name">Full name</label>
+        <input class="input" id="name" name="name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input class="input" id="email" name="email" type="email" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input class="input" id="password" name="password" type="password" autocomplete="new-password"
+               placeholder="At least 10 characters">
+      </div>
+      <div class="field">
+        <label for="role">Role</label>
+        <select class="select" id="role" name="role">
+          <option value="editor">Editor - manages content</option>
+          <option value="admin">Administrator - content, settings and team</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bio">Short bio</label>
+        <textarea class="textarea" id="bio" name="bio" rows="2" style="min-height:4rem"
+                  placeholder="Shown beside their articles."></textarea>
+      </div>
+      <label class="check">
+        <input type="checkbox" name="is_active" value="1" checked>
+        <span>Account active<small>Uncheck to suspend access without deleting.</small></span>
+      </label>
+      <button class="btn mt-2" type="submit">Save account</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Pages{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-sm" href="/admin/pages/new">{{ ico.icon('file', 15) }} New page</a>
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Page deleted.</div>
+{% endif %}
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Standalone pages</h2>
+    <span class="spacer"></span>
+    <span class="small muted">About, Services, policies - anything that is not an event, notice or article.</span>
+  </div>
+
+  {% if pages %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Page</th><th>URL</th><th>Status</th><th>In menu</th><th>Order</th><th></th></tr></thead>
+      <tbody>
+        {% for p in pages %}
+        <tr>
+          <td>
+            <div class="cell-title"><a href="/admin/pages/{{ p.id }}/edit">{{ p.title }}</a></div>
+            {% if p.subtitle %}<div class="cell-sub">{{ p.subtitle | truncate(70) }}</div>{% endif %}
+          </td>
+          <td class="mono small">/{{ p.slug }}</td>
+          <td><span class="badge badge-{{ p.status.value }}">{{ p.status.value | capitalize }}</span></td>
+          <td class="small">{{ 'Yes' if p.show_in_nav else 'No' }}</td>
+          <td class="small">{{ p.nav_order }}</td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="/{{ p.slug }}" target="_blank" rel="noopener">View</a>
+            <a class="btn btn-ghost btn-sm" href="/admin/pages/{{ p.id }}/edit">Edit</a>
+            <form method="post" action="/admin/pages/{{ p.id }}/delete" style="display:inline"
+                  data-confirm="Delete the page &quot;{{ p.title }}&quot;?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No pages yet</h3>
+    <p>Create an About page and tick &ldquo;show in menu&rdquo; to add it to the site navigation.</p>
+    <a class="btn mt-2" href="/admin/pages/new">New page</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

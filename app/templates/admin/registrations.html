@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Registrations{% endblock %}
+{% block heading %}Registrations &middot; {{ event.title | truncate(48) }}{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="/admin/events/{{ event.id }}/edit">Edit event</a>
+<a class="btn btn-sm" href="/admin/events/{{ event.id }}/registrations.csv">{{ ico.icon('download', 15) }} Export CSV</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid cols-3">
+  <div class="tile">
+    <span class="label">Registered</span>
+    <span class="value">{{ regs | length }}</span>
+    {% if event.capacity %}<span class="note">of {{ event.capacity }} seats</span>{% endif %}
+  </div>
+  <div class="tile">
+    <span class="label">Starts</span>
+    <span class="value" style="font-size:1.15rem">{{ event.start_at | fmt_date }}</span>
+    <span class="note">{{ event.start_at.strftime('%I:%M %p').lstrip('0') }} {{ event.timezone_name }}</span>
+  </div>
+  <div class="tile">
+    <span class="label">Where</span>
+    <span class="value" style="font-size:1.15rem">{{ event.location_line }}</span>
+    <span class="note">{{ {'in_person': 'In person', 'online': 'Online', 'hybrid': 'Hybrid'}[event.mode] }}</span>
+  </div>
+</div>
+
+<div class="panel panel-flush">
+  <div class="panel-head"><h2>Everyone who signed up</h2></div>
+  {% if regs %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Name</th><th>Contact</th><th>Organisation</th><th>Notes</th><th>Registered</th></tr></thead>
+      <tbody>
+        {% for r in regs %}
+        <tr>
+          <td class="cell-title">{{ r.name }}</td>
+          <td class="small">
+            <a href="mailto:{{ r.email }}">{{ r.email }}</a>
+            {% if r.phone %}<div class="cell-sub">{{ r.phone }}</div>{% endif %}
+          </td>
+          <td class="small">{{ r.organisation or '-' }}</td>
+          <td class="small soft">{{ r.notes | truncate(80) if r.notes else '-' }}</td>
+          <td class="small nowrap">{{ r.created_at | fmt_date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No registrations yet</h3>
+    <p class="mb-0">
+      {% if event.registration_url %}
+        This event points at an external registration page, so signups are not collected here.
+      {% else %}
+        Signups from the event page will appear here.
+      {% endif %}
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

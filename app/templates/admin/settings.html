@@ -1,0 +1,118 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% import "admin/_seo_panel.html" as seo %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+{% if saved %}<div class="alert alert-success">{{ ico.icon('check', 17) }} Settings saved. Changes are live on the site immediately.</div>{% endif %}
+
+<form method="post" action="/admin/settings">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  <div class="tabs">
+    {% for key, label, _ in groups %}
+    <button type="button" class="{{ 'is-active' if loop.first }}" data-settings-tab="{{ key }}">{{ label }}</button>
+    {% endfor %}
+  </div>
+
+  {% for key, label, blurb in groups %}
+  <section class="panel {{ '' if loop.first else 'hidden' }}" data-settings-panel="{{ key }}" id="{{ key }}">
+    <h2>{{ label }}</h2>
+    <p class="small muted">{{ blurb }}</p>
+
+    <div class="mt-3">
+      {% for field_key, spec in defaults.items() %}
+        {% if spec[1] == key %}
+          {% set default_value, group, field_label, field_type, help_text = spec %}
+          {% if field_type == 'bool' %}
+            <label class="check">
+              <input type="checkbox" name="{{ field_key }}" value="1"
+                     {{ 'checked' if values.get(field_key) in ['1', 'true', 'on', 'yes'] }}>
+              <span>{{ field_label }}{% if help_text %}<small>{{ help_text }}</small>{% endif %}</span>
+            </label>
+          {% elif field_type == 'textarea' %}
+            <div class="field">
+              <label for="{{ field_key }}">{{ field_label }}</label>
+              <textarea class="textarea" id="{{ field_key }}" name="{{ field_key }}" rows="3"
+                        style="min-height:5rem">{{ values.get(field_key, '') }}</textarea>
+              {% if help_text %}<span class="hint">{{ help_text }}</span>{% endif %}
+            </div>
+          {% elif field_type == 'media' %}
+            <div class="field">
+              <label for="{{ field_key }}">{{ field_label }}</label>
+              <div class="row" style="flex-wrap:nowrap">
+                <input class="input" id="{{ field_key }}" name="{{ field_key }}" value="{{ values.get(field_key, '') }}">
+                <button class="btn btn-ghost btn-sm nowrap" type="button" data-pick-media="{{ field_key }}">Choose</button>
+              </div>
+              {% if help_text %}<span class="hint">{{ help_text }}</span>{% endif %}
+              {% if values.get(field_key) %}
+              <img src="{{ values.get(field_key) }}" alt="" data-media-thumb
+                   style="margin-top:.5rem;max-height:5rem;border-radius:var(--r-sm);border:1px solid var(--border)">
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="field">
+              <label for="{{ field_key }}">{{ field_label }}</label>
+              <input class="input" id="{{ field_key }}" name="{{ field_key }}" value="{{ values.get(field_key, '') }}">
+              {% if help_text %}<span class="hint">{{ help_text }}</span>{% endif %}
+            </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if key == 'analytics' %}
+    <div class="alert alert-info mt-2">
+      {{ ico.icon('info', 17) }}
+      <div>
+        <strong>How to find your GA4 measurement ID:</strong> in Google Analytics go to
+        Admin &rarr; Data streams &rarr; select your web stream. The ID looks like
+        <span class="mono">G-XXXXXXXXXX</span>. Paste it above and analytics starts on every page,
+        after consent if the banner is on.
+      </div>
+    </div>
+    {% endif %}
+
+    {% if key == 'seo' %}
+    <div class="alert alert-info mt-2">
+      {{ ico.icon('info', 17) }}
+      <div>
+        Canonical URLs and the sitemap are built from <span class="mono">SITE_URL</span> in your
+        <span class="mono">.env</span> file, currently <span class="mono">{{ site_url }}</span>.
+        Point that at your live domain before launch.
+      </div>
+    </div>
+    {% endif %}
+  </section>
+  {% endfor %}
+
+  <div class="savebar">
+    <span class="tiny muted">Signed in as {{ user.email }}</span>
+    <span class="spacer"></span>
+    <button class="btn" type="submit">Save all settings</button>
+  </div>
+</form>
+
+{{ seo.media_picker_dialog() }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('[data-settings-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var key = tab.dataset.settingsTab;
+      document.querySelectorAll('[data-settings-tab]').forEach(function (t) {
+        t.classList.toggle('is-active', t === tab);
+      });
+      document.querySelectorAll('[data-settings-panel]').forEach(function (p) {
+        p.classList.toggle('hidden', p.dataset.settingsPanel !== key);
+      });
+      history.replaceState(null, '', '#' + key);
+    });
+  });
+  if (location.hash) {
+    var target = document.querySelector('[data-settings-tab="' + location.hash.slice(1) + '"]');
+    if (target) target.click();
+  }
+</script>
+{% endblock %}

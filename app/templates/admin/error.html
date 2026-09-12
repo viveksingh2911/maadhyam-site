@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{{ status }} &middot; Admin</title>
+<link rel="stylesheet" href="{{ static_url('/static/css/admin.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card center">
+    <h1 style="font-size:2.4rem;margin-bottom:.2rem">{{ status }}</h1>
+    <p class="soft">{{ detail }}</p>
+    <a class="btn mt-2" href="/admin">Back to the dashboard</a>
+  </div>
+</div>
+</body>
+</html>

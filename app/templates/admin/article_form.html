@@ -1,0 +1,122 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% import "admin/_seo_panel.html" as seo %}
+{% block title %}{{ 'Edit article' if article else 'New article' }}{% endblock %}
+
+{% block topbar_actions %}
+{% if article %}<a class="btn btn-ghost btn-sm" href="/articles/{{ article.slug }}" target="_blank" rel="noopener">View on site</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Saved. Reading time, excerpt and structured data were regenerated.</div>
+{% endif %}
+
+<form method="post" action="/admin/articles/save">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if article %}<input type="hidden" name="id" value="{{ article.id }}">{% endif %}
+
+  <div class="editor-layout">
+    <div class="stack">
+      <div class="panel">
+        <div class="field">
+          <label for="title">Headline</label>
+          <input class="input" id="title" name="title" required data-slug-source
+                 value="{{ article.title if article else '' }}" placeholder="Why mediated settlements hold">
+          <span class="counter" data-counter-for="title" data-max="70"></span>
+        </div>
+
+        <div class="field">
+          <label for="slug">URL slug</label>
+          <input class="input mono" id="slug" name="slug" data-slug-target value="{{ article.slug if article else '' }}">
+          <span class="hint">{{ site_url }}/articles/<span class="mono">your-slug</span></span>
+        </div>
+
+        <div class="field">
+          <label for="excerpt">Standfirst / excerpt</label>
+          <textarea class="textarea" id="excerpt" name="excerpt" rows="3" style="min-height:5rem"
+                    placeholder="Leave blank and the first lines of the body are used.">{{ article.excerpt if article else '' }}</textarea>
+          <span class="counter" data-counter-for="excerpt" data-max="200" data-min="70"></span>
+        </div>
+
+        {{ seo.editor_field(article.body_md if article else '') }}
+      </div>
+
+      <div class="panel">
+        <h2>Link post</h2>
+        <p class="tiny muted">For coverage published elsewhere. Fill these in and the article page becomes a
+          styled pointer to the original instead of a full body.</p>
+        <div class="field-row mt-2">
+          <div class="field">
+            <label for="external_url">Original URL</label>
+            <input class="input" id="external_url" name="external_url"
+                   value="{{ article.external_url if article else '' }}" placeholder="https://...">
+          </div>
+          <div class="field">
+            <label for="source_name">Publication</label>
+            <input class="input" id="source_name" name="source_name"
+                   value="{{ article.source_name if article else '' }}" placeholder="Legal Practice Review">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="stack">
+      <div class="panel">
+        <h2>Publish</h2>
+        {{ seo.status_field(article) }}
+        <div class="field">
+          <label for="published_at">Publication date</label>
+          <input class="input" id="published_at" name="published_at" type="datetime-local"
+                 value="{{ article.published_at | dt_local if article and article.published_at else '' }}">
+          <span class="hint">Blank means now, at the moment you publish.</span>
+        </div>
+        <div class="field">
+          <label for="category_id">Category</label>
+          <select class="select" id="category_id" name="category_id">
+            <option value="">Uncategorised</option>
+            {% for c in categories %}
+            <option value="{{ c.id }}" {{ 'selected' if article and article.category_id == c.id }}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="tags">Tags</label>
+          <input class="input" id="tags" name="tags" value="{{ article.tags if article else '' }}"
+                 placeholder="mediation, settlement, practice">
+          <span class="hint">Comma separated. Each becomes a filter link.</span>
+        </div>
+        <label class="check">
+          <input type="checkbox" name="featured" value="1" {{ 'checked' if article and article.featured }}>
+          <span>Feature on the homepage<small>The most recent featured article gets the large card.</small></span>
+        </label>
+        <div class="row mt-2">
+          <button class="btn" type="submit">Save article</button>
+          <button class="btn btn-soft" type="submit" data-set-status="published">Save &amp; publish</button>
+        </div>
+        {% if article %}
+        <p class="tiny muted mt-2 mb-0">
+          {{ article.reading_minutes }} min read &middot; {{ article.views }} views &middot; updated {{ article.updated_at | time_ago }}
+        </p>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <h2>Cover image</h2>
+        {{ seo.image_field('cover_image', 'Image', article.cover_image if article else '', 'cover_alt',
+                           article.cover_alt if article else '', 'Landscape, at least 1200px wide.') }}
+      </div>
+
+      {{ seo.seo_panel(article, '/articles', cfg, issues, score) }}
+    </aside>
+  </div>
+
+  <div class="savebar">
+    <a class="btn btn-ghost btn-sm" href="/admin/articles">Back to articles</a>
+    <span class="spacer"></span>
+    <button class="btn" type="submit">Save</button>
+  </div>
+</form>
+
+{{ seo.media_picker_dialog() }}
+{% endblock %}

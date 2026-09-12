@@ -1,0 +1,82 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Events{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-sm" href="/admin/events/new">{{ ico.icon('calendar', 15) }} New event</a>
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Event deleted.</div>
+{% endif %}
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <form class="row" method="get" action="/admin/events" style="flex:1">
+      <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search events" style="max-width:18rem">
+      <select class="select" name="status" style="max-width:11rem">
+        <option value="">Any status</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s | capitalize }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-ghost btn-sm" type="submit">Filter</button>
+      {% if q or status %}<a class="btn btn-ghost btn-sm" href="/admin/events">Reset</a>{% endif %}
+    </form>
+  </div>
+
+  {% if events %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Event</th>
+          <th>When</th>
+          <th>Format</th>
+          <th>Status</th>
+          <th>Signups</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td>
+            <div class="cell-title"><a href="/admin/events/{{ e.id }}/edit">{{ e.title }}</a></div>
+            <div class="cell-sub">/events/{{ e.slug }}{% if e.featured %} &middot; featured{% endif %}</div>
+          </td>
+          <td class="nowrap">
+            {{ e.start_at.strftime('%d %b %Y') }}
+            <div class="cell-sub">{{ e.start_at.strftime('%I:%M %p').lstrip('0') }}{% if e.is_past %} &middot; past{% endif %}</div>
+          </td>
+          <td class="small">
+            {{ {'in_person': 'In person', 'online': 'Online', 'hybrid': 'Hybrid'}[e.mode] }}
+            <div class="cell-sub">{{ e.city or '-' }}</div>
+          </td>
+          <td><span class="badge badge-{{ e.status.value }}">{{ e.status.value | capitalize }}</span></td>
+          <td class="nowrap">
+            <a href="/admin/events/{{ e.id }}/registrations">{{ reg_counts.get(e.id, 0) }}</a>
+            {% if e.capacity %}<span class="muted"> / {{ e.capacity }}</span>{% endif %}
+          </td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="/events/{{ e.slug }}" target="_blank" rel="noopener">View</a>
+            <a class="btn btn-ghost btn-sm" href="/admin/events/{{ e.id }}/edit">Edit</a>
+            <form method="post" action="/admin/events/{{ e.id }}/delete" style="display:inline"
+                  data-confirm="Delete &quot;{{ e.title }}&quot; and all its registrations? This cannot be undone.">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No events yet</h3>
+    <p>Create one and it appears on the site, in the sitemap and as Event structured data for Google.</p>
+    <a class="btn mt-2" href="/admin/events/new">New event</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

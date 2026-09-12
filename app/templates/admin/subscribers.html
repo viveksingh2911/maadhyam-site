@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Subscribers{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost btn-sm" href="/admin/subscribers.csv">{{ ico.icon('download', 15) }} Export CSV</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <h2>Newsletter list</h2>
+    <span class="spacer"></span>
+    <span class="small muted">{{ subs | length }} subscriber{{ '' if subs | length == 1 else 's' }}</span>
+  </div>
+
+  {% if subs %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Email</th><th>Name</th><th>Signed up from</th><th>Joined</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for s in subs %}
+        <tr>
+          <td class="cell-title"><a href="mailto:{{ s.email }}">{{ s.email }}</a></td>
+          <td class="small">{{ s.name or '-' }}</td>
+          <td class="small mono">{{ s.source or '-' }}</td>
+          <td class="small nowrap">{{ s.created_at | fmt_date }}</td>
+          <td><span class="badge badge-{{ 'published' if s.is_active else 'draft' }}">{{ 'Active' if s.is_active else 'Unsubscribed' }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No subscribers yet</h3>
+    <p class="mb-0">The signup form appears on the homepage, article pages and event listings.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% import "admin/_seo_panel.html" as seo %}
+{% block title %}{{ 'Edit notice' if note else 'New notice' }}{% endblock %}
+
+{% block topbar_actions %}
+{% if note %}<a class="btn btn-ghost btn-sm" href="/notifications/{{ note.slug }}" target="_blank" rel="noopener">View on site</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('saved') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Saved.</div>
+{% endif %}
+
+<form method="post" action="/admin/notifications/save">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if note %}<input type="hidden" name="id" value="{{ note.id }}">{% endif %}
+
+  <div class="editor-layout">
+    <div class="stack">
+      <div class="panel">
+        <div class="field">
+          <label for="title">Notice title</label>
+          <input class="input" id="title" name="title" required data-slug-source
+                 value="{{ note.title if note else '' }}" placeholder="Panel applications open for the 2026-27 cycle">
+          <span class="counter" data-counter-for="title" data-max="70"></span>
+        </div>
+
+        <div class="field">
+          <label for="slug">URL slug</label>
+          <input class="input mono" id="slug" name="slug" data-slug-target value="{{ note.slug if note else '' }}">
+        </div>
+
+        <div class="field">
+          <label for="summary">Summary</label>
+          <textarea class="textarea" id="summary" name="summary" rows="3" style="min-height:5rem"
+                    placeholder="The one-line version that appears on the notice board and in the ticker.">{{ note.summary if note else '' }}</textarea>
+          <span class="counter" data-counter-for="summary" data-max="200" data-min="60"></span>
+        </div>
+
+        {{ seo.editor_field(note.body_md if note else '', 'Full notice') }}
+      </div>
+
+      <div class="panel">
+        <h2>Call to action</h2>
+        <div class="field-row">
+          <div class="field">
+            <label for="link_url">Link</label>
+            <input class="input" id="link_url" name="link_url" value="{{ note.link_url if note else '' }}"
+                   placeholder="https:// or /a-page-on-this-site">
+          </div>
+          <div class="field">
+            <label for="link_label">Button label</label>
+            <input class="input" id="link_label" name="link_label" value="{{ note.link_label if note else '' }}"
+                   placeholder="Request the application pack">
+          </div>
+        </div>
+        <div class="field">
+          <label for="attachment">Attachment</label>
+          <div class="row" style="flex-wrap:nowrap">
+            <input class="input" id="attachment" name="attachment" value="{{ note.attachment if note else '' }}"
+                   placeholder="PDF or document from the media library">
+            <button class="btn btn-ghost btn-sm nowrap" type="button" data-pick-media="attachment">Choose</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="stack">
+      <div class="panel">
+        <h2>Publish</h2>
+        <div class="field">
+          <label for="level">Urgency</label>
+          <select class="select" id="level" name="level">
+            {% for l in levels %}
+            <option value="{{ l }}" {{ 'selected' if note and note.level.value == l }}>{{ l | capitalize }}</option>
+            {% endfor %}
+          </select>
+          <span class="hint">Important and urgent notices are colour-coded and labelled in the ticker.</span>
+        </div>
+
+        {{ seo.status_field(note) }}
+
+        <div class="field">
+          <label for="starts_at">Show from</label>
+          <input class="input" id="starts_at" name="starts_at" type="datetime-local"
+                 value="{{ note.starts_at | dt_local if note and note.starts_at else '' }}">
+        </div>
+        <div class="field">
+          <label for="expires_at">Hide after</label>
+          <input class="input" id="expires_at" name="expires_at" type="datetime-local"
+                 value="{{ note.expires_at | dt_local if note and note.expires_at else '' }}">
+          <span class="hint">The notice disappears from the site by itself once this passes.</span>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="pinned" value="1" {{ 'checked' if note and note.pinned }}>
+          <span>Pin to the top<small>Stays first on the notice board.</small></span>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="show_in_ticker" value="1" {{ 'checked' if not note or note.show_in_ticker }}>
+          <span>Show in the site-wide ticker<small>The scrolling bar above the header.</small></span>
+        </label>
+
+        <div class="row mt-2">
+          <button class="btn" type="submit">Save notice</button>
+          <button class="btn btn-soft" type="submit" data-set-status="published">Save &amp; publish</button>
+        </div>
+      </div>
+
+      {{ seo.seo_panel(note, '/notifications', cfg, issues, score) }}
+    </aside>
+  </div>
+
+  <div class="savebar">
+    <a class="btn btn-ghost btn-sm" href="/admin/notifications">Back to notices</a>
+    <span class="spacer"></span>
+    <button class="btn" type="submit">Save</button>
+  </div>
+</form>
+
+{{ seo.media_picker_dialog() }}
+{% endblock %}

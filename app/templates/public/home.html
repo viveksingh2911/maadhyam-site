@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="hero">
+  <div class="shell hero-grid">
+    <div>
+      <span class="eyebrow">{{ cfg.home_hero_eyebrow }}</span>
+      <h1>{{ cfg.home_hero_title }}</h1>
+      <p class="lede">{{ cfg.home_hero_body }}</p>
+      <div class="hero-actions">
+        <a class="btn btn-lg" href="{{ cfg.home_hero_primary_url }}">
+          {{ cfg.home_hero_primary_label }} {{ ico.icon('arrow-right', 17) }}
+        </a>
+        <a class="btn btn-ghost btn-lg" href="{{ cfg.home_hero_secondary_url }}">{{ cfg.home_hero_secondary_label }}</a>
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      {% if cfg.home_hero_image %}
+        <div class="hero-figure">
+          <img src="{{ cfg.home_hero_image }}" alt="{{ cfg.home_hero_image_alt }}"
+               {% if not cfg.home_hero_image_alt %}role="presentation"{% endif %}>
+        </div>
+      {% endif %}
+      {% if upcoming %}
+        <div>
+          <h4 class="tiny" style="letter-spacing:.11em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font-body);margin-bottom:.4rem">
+            Next on the calendar
+          </h4>
+          {% for e in upcoming[:2] %}{{ c.event_row(e) }}{% endfor %}
+          <a class="btn btn-soft btn-sm mt-2" href="/events">See the full calendar {{ ico.icon('arrow-right', 15) }}</a>
+        </div>
+      {% else %}
+        <div>
+          <h4 style="font-family:var(--font-body);font-size:.95rem">Nothing scheduled yet</h4>
+          <p class="small soft mb-0">New programmes are announced here first. Subscribe below to hear about them.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell">
+    <div class="stats">
+      {% for i in [1, 2, 3, 4] %}
+        {% set value = cfg['home_stat_' ~ i ~ '_value'] %}
+        {% if value %}
+        <div class="stat">
+          <div class="stat-value">{{ value }}</div>
+          <div class="stat-label">{{ cfg['home_stat_' ~ i ~ '_label'] }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if notices %}
+<section class="section-tight">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">{{ ico.icon('bell', 14) }} Notice board</span>
+        <h2>What needs your attention</h2>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="/notifications">All notices</a>
+    </div>
+    <div class="grid grid-2">
+      {% for n in notices %}{{ c.notice_item(n) }}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section section-tint">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">{{ ico.icon('calendar', 14) }} Events</span>
+        <h2>Convenings, training and roundtables</h2>
+        <p>Conferences, accreditation programmes and closed-door sessions across mediation and arbitration practice.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="/events">Browse all events</a>
+    </div>
+
+    {% if upcoming %}
+      <div class="grid grid-3">
+        {% for e in upcoming %}{{ c.event_card(e) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">
+        <h3>No events published yet</h3>
+        <p class="mb-0">Add one from the admin portal and it will appear here, in the sitemap and in search results.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="shell">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">{{ ico.icon('book', 14) }} Knowledge Lab</span>
+        <h2>Articles, commentary and coverage</h2>
+        <p>Reading that shapes how disputes get resolved - from our practitioners and from the wider field.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm" href="/articles">Read everything</a>
+    </div>
+
+    {% if featured %}
+    <article class="card mb-3" data-reveal>
+      <div class="split-wide" style="display:grid;gap:0">
+        <div class="card-media" style="aspect-ratio:16/9;min-height:100%">
+          {% if featured.cover_image %}
+            <img src="{{ featured.cover_image }}" alt="{{ featured.cover_alt or featured.title }}">
+          {% else %}
+            <div class="card-media-fallback" aria-hidden="true">{{ featured.title[:2] | upper }}</div>
+          {% endif %}
+        </div>
+        <div class="card-body" style="padding:clamp(1.5rem,3vw,2.5rem);justify-content:center">
+          <span class="badge badge-accent">Featured</span>
+          <h3 style="font-size:clamp(1.4rem,1.1rem+1vw,1.95rem);margin:.35rem 0 .5rem">
+            <a href="/articles/{{ featured.slug }}" style="color:inherit;text-decoration:none">{{ featured.title }}</a>
+          </h3>
+          <p class="soft clamp-3">{{ featured.excerpt }}</p>
+          <div class="card-meta">
+            <span>{{ featured.published_at | fmt_date }}</span>
+            <span>{{ featured.reading_minutes }} min read</span>
+            {% if featured.category %}<span>{{ featured.category.name }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+    </article>
+    {% endif %}
+
+    {% if latest %}
+      <div class="grid grid-3">
+        {% for a in latest %}{{ c.article_card(a) }}{% endfor %}
+      </div>
+    {% elif not featured %}
+      <div class="empty">
+        <h3>The Knowledge Lab is empty</h3>
+        <p class="mb-0">Publish your first article from the admin portal.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{{ c.newsletter(cfg, request) }}
+{% endblock %}

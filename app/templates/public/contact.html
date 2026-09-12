@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <span class="eyebrow">{{ ico.icon('mail', 14) }} Get in touch</span>
+    <h1>{{ page.title if page else 'Contact us' }}</h1>
+    <p>{{ page.subtitle if page and page.subtitle else 'Enquiries about mediation, arbitration, training, speaking and collaborations.' }}</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell split">
+    <div>
+      {% if sent %}
+      <div class="alert alert-success">{{ ico.icon('check', 18) }}
+        <div><strong>Message received.</strong> The secretariat replies within two working days.</div>
+      </div>
+      {% elif error %}
+      <div class="alert alert-danger">{{ ico.icon('alert', 18) }}
+        <div>Please check your email address and make sure the message is at least a sentence long.</div>
+      </div>
+      {% endif %}
+
+      {% if page and page.body_html %}<div class="prose mb-3">{{ page.body_html | safe }}</div>{% endif %}
+
+      <form method="post" action="/contact" class="card" style="padding:clamp(1.4rem,3vw,2rem)">
+        <div class="grid grid-2" style="gap:0 1rem">
+          <div class="field">
+            <label for="c-name">Your name</label>
+            <input class="input" id="c-name" name="name" required>
+          </div>
+          <div class="field">
+            <label for="c-email">Email</label>
+            <input class="input" id="c-email" type="email" name="email" required>
+          </div>
+          <div class="field">
+            <label for="c-phone">Phone <span class="muted">(optional)</span></label>
+            <input class="input" id="c-phone" name="phone">
+          </div>
+          <div class="field">
+            <label for="c-subject">Subject</label>
+            <input class="input" id="c-subject" name="subject" placeholder="Mediation enquiry">
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-message">How can we help?</label>
+          <textarea class="textarea" id="c-message" name="message" rows="6" required
+                    placeholder="Tell us briefly about the matter, the parties involved and the outcome you are looking for."></textarea>
+        </div>
+        <div class="visually-hidden" aria-hidden="true">
+          <label for="c-website">Leave this empty</label>
+          <input id="c-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <button class="btn btn-lg" type="submit">Send message</button>
+        <p class="tiny muted mt-1 mb-0">We use your details only to reply to this enquiry.</p>
+      </form>
+    </div>
+
+    <aside class="stack">
+      <div class="aside-card">
+        <h3>Secretariat</h3>
+        <ul class="meta-list">
+          {% if cfg.contact_email %}
+          <li class="meta-item">{{ ico.icon('mail', 17) }}
+            <div><strong>Email</strong><span><a href="mailto:{{ cfg.contact_email }}">{{ cfg.contact_email }}</a></span></div>
+          </li>{% endif %}
+          {% if cfg.contact_phone %}
+          <li class="meta-item">{{ ico.icon('phone', 17) }}
+            <div><strong>Phone</strong><span><a href="tel:{{ cfg.contact_phone | replace(' ', '') }}">{{ cfg.contact_phone }}</a></span></div>
+          </li>{% endif %}
+          {% if cfg.contact_address %}
+          <li class="meta-item">{{ ico.icon('pin', 17) }}
+            <div><strong>Address</strong><span>{{ cfg.contact_address }}</span></div>
+          </li>{% endif %}
+          {% if cfg.contact_hours %}
+          <li class="meta-item">{{ ico.icon('clock', 17) }}
+            <div><strong>Hours</strong><span>{{ cfg.contact_hours }}</span></div>
+          </li>{% endif %}
+        </ul>
+      </div>
+
+      {% if cfg.map_embed_url %}
+      <div class="aside-card" style="padding:0;overflow:hidden">
+        <iframe src="{{ cfg.map_embed_url }}" width="100%" height="260" style="border:0;display:block"
+                loading="lazy" title="Office location" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

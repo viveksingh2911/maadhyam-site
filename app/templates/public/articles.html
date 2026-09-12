@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <span class="eyebrow">{{ ico.icon('book', 14) }} Knowledge Lab</span>
+    <h1>Articles and commentary</h1>
+    <p>Practitioner writing, case notes and press coverage on mediation, arbitration and dispute resolution.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell stack-lg">
+    <form class="search-bar" method="get" action="/articles">
+      <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search articles, authors or topics">
+      {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+      <button class="btn" type="submit">{{ ico.icon('search', 16) }} Search</button>
+      {% if q or category or tag %}<a class="btn btn-ghost" href="/articles">Clear</a>{% endif %}
+    </form>
+
+    {% if categories %}
+    <div class="chip-row">
+      <a class="chip {{ 'is-active' if not category }}" href="/articles">Everything</a>
+      {% for cat in categories %}
+      <a class="chip {{ 'is-active' if category == cat.slug }}" href="/articles?category={{ cat.slug }}">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if tag %}<p class="small muted mb-0">Tagged <strong>{{ tag }}</strong> &middot; <a href="/articles">clear</a></p>{% endif %}
+    <p class="small muted mb-0">{{ pg.total }} article{{ '' if pg.total == 1 else 's' }}.</p>
+
+    {% if articles %}
+      <div class="grid grid-3">
+        {% for a in articles %}{{ c.article_card(a) }}{% endfor %}
+      </div>
+      {{ c.pagination(pg, '/articles', ('q=' ~ q ~ '&' if q else '') ~ ('category=' ~ category ~ '&' if category else '') ~ ('tag=' ~ tag ~ '&' if tag else '')) }}
+    {% else %}
+      <div class="empty">
+        <h3>Nothing here yet</h3>
+        <p class="mb-0">Try a broader search, or <a href="/articles">see everything</a>.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{{ c.newsletter(cfg, request) }}
+{% endblock %}

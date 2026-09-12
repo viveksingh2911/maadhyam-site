@@ -1,0 +1,70 @@
+{% extends "admin/base.html" %}
+{% import "partials/icons.html" as ico %}
+{% block title %}Articles{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-sm" href="/admin/articles/new">{{ ico.icon('book', 15) }} New article</a>
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('deleted') %}
+<div class="alert alert-success">{{ ico.icon('check', 17) }} Article deleted.</div>
+{% endif %}
+
+<div class="panel panel-flush">
+  <div class="panel-head">
+    <form class="row" method="get" action="/admin/articles" style="flex:1">
+      <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search by title or tag" style="max-width:18rem">
+      <select class="select" name="status" style="max-width:11rem">
+        <option value="">Any status</option>
+        {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s | capitalize }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-ghost btn-sm" type="submit">Filter</button>
+      {% if q or status %}<a class="btn btn-ghost btn-sm" href="/admin/articles">Reset</a>{% endif %}
+    </form>
+  </div>
+
+  {% if articles %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>Article</th><th>Category</th><th>Status</th><th>Published</th><th>Views</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for a in articles %}
+        <tr>
+          <td>
+            <div class="cell-title"><a href="/admin/articles/{{ a.id }}/edit">{{ a.title }}</a></div>
+            <div class="cell-sub">
+              /articles/{{ a.slug }}
+              {%- if a.featured %} &middot; featured{% endif %}
+              {%- if a.is_link_post %} &middot; external link{% endif %}
+            </div>
+          </td>
+          <td class="small">{{ a.category.name if a.category else '-' }}</td>
+          <td><span class="badge badge-{{ a.status.value }}">{{ a.status.value | capitalize }}</span></td>
+          <td class="small nowrap">{{ a.published_at | fmt_date if a.published_at else '-' }}</td>
+          <td class="small">{{ a.views }}</td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="/articles/{{ a.slug }}" target="_blank" rel="noopener">View</a>
+            <a class="btn btn-ghost btn-sm" href="/admin/articles/{{ a.id }}/edit">Edit</a>
+            <form method="post" action="/admin/articles/{{ a.id }}/delete" style="display:inline"
+                  data-confirm="Delete &quot;{{ a.title }}&quot;? This cannot be undone.">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+              <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <h3>No articles yet</h3>
+    <p>Write your own, or add a link post pointing at coverage published elsewhere.</p>
+    <a class="btn mt-2" href="/admin/articles/new">New article</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

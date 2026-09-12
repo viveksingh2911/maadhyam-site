@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="section">
+  <div class="shell center" style="max-width:38rem">
+    <span class="eyebrow" style="justify-content:center">Error 404</span>
+    <h1>We could not find that page</h1>
+    <p class="lede">It may have moved, or the link may be out of date. These are good places to pick up the trail.</p>
+    <div class="row mt-3" style="justify-content:center">
+      <a class="btn" href="/">Back to home</a>
+      <a class="btn btn-ghost" href="/events">Events</a>
+      <a class="btn btn-ghost" href="/articles">Knowledge Lab</a>
+      <a class="btn btn-ghost" href="/search">Search</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

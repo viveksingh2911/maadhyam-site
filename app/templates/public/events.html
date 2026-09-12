@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "partials/cards.html" as c %}
+{% import "partials/icons.html" as ico %}
+
+{% block content %}
+<section class="page-head">
+  <div class="shell">
+    {{ c.breadcrumbs(breadcrumbs) }}
+    <span class="eyebrow">{{ ico.icon('calendar', 14) }} Calendar</span>
+    <h1>Events</h1>
+    <p>Conferences, accreditation programmes, workshops and roundtables convened by {{ cfg.site_name }}.</p>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="shell stack-lg">
+    <form class="stack" method="get" action="/events">
+      <div class="search-bar">
+        <input class="input" type="search" name="q" value="{{ q }}" placeholder="Search events by title or topic">
+        {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+        <input type="hidden" name="when" value="{{ when }}">
+        <button class="btn" type="submit">{{ ico.icon('search', 16) }} Search</button>
+        {% if q or category %}<a class="btn btn-ghost" href="/events?when={{ when }}">Clear</a>{% endif %}
+      </div>
+    </form>
+
+    <div class="row-between">
+      <div class="chip-row">
+        <a class="chip {{ 'is-active' if when == 'upcoming' }}" href="/events?when=upcoming{% if q %}&q={{ q }}{% endif %}">Upcoming</a>
+        <a class="chip {{ 'is-active' if when == 'past' }}" href="/events?when=past{% if q %}&q={{ q }}{% endif %}">Past</a>
+        <a class="chip {{ 'is-active' if when == 'all' }}" href="/events?when=all{% if q %}&q={{ q }}{% endif %}">All</a>
+      </div>
+      {% if categories %}
+      <div class="chip-row">
+        <a class="chip {{ 'is-active' if not category }}" href="/events?when={{ when }}">All formats</a>
+        {% for cat in categories %}
+        <a class="chip {{ 'is-active' if category == cat.slug }}" href="/events?when={{ when }}&category={{ cat.slug }}">{{ cat.name }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <p class="small muted mb-0">{{ pg.total }} event{{ '' if pg.total == 1 else 's' }} found.</p>
+
+    {% if events %}
+      <div class="grid grid-3">
+        {% for e in events %}{{ c.event_card(e) }}{% endfor %}
+      </div>
+      {{ c.pagination(pg, '/events', 'when=' ~ when ~ ('&q=' ~ q if q else '') ~ ('&category=' ~ category if category else '') ~ '&') }}
+    {% else %}
+      <div class="empty">
+        <h3>No events match that filter</h3>
+        <p class="mb-0">Try a different search, or look at <a href="/events?when=all">every event</a>.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{{ c.newsletter(cfg, request) }}
+{% endblock %}
