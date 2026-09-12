@@ -5,6 +5,8 @@ Pass --reset to wipe existing content first.
 """
 from __future__ import annotations
 
+import os
+import secrets
 import sys
 from datetime import timedelta
 
@@ -19,6 +21,16 @@ from app.site_settings import save_settings
 from app.utils import reading_time, render_markdown, slugify
 
 NOW = utcnow()
+
+
+def _demo_password(env_var: str) -> str:
+    """Password for a seeded demo account.
+
+    Taken from the environment when set, otherwise generated. Never a literal
+    in this file: seed.py is public, so a hardcoded value would be a published
+    credential for anyone who runs it against a reachable site.
+    """
+    return os.getenv(env_var, "").strip() or secrets.token_urlsafe(12)
 
 
 def days(n: int):
@@ -46,20 +58,25 @@ def seed(reset: bool = False) -> None:
             print("Content already present. Re-run with --reset to replace it.")
             return
 
+        admin_password = editor_password = ""
+
         admin = db.execute(select(User).where(User.role == Role.admin)).scalars().first()
         if admin is None:
+            admin_password = _demo_password("SEED_ADMIN_PASSWORD")
             admin = User(
                 email="admin@maadhyam.local", name="Site Administrator",
-                password_hash=hash_password("ChangeMe!2026"), role=Role.admin,
+                password_hash=hash_password(admin_password), role=Role.admin,
             )
             db.add(admin)
             db.flush()
 
         editor = db.execute(select(User).where(User.email == "editor@maadhyam.local")).scalars().first()
         if editor is None:
+            editor_password = _demo_password("SEED_EDITOR_PASSWORD")
             editor = User(
                 email="editor@maadhyam.local", name="Ananya Rao",
-                password_hash=hash_password("EditorPass!2026"), role=Role.editor,
+                password_hash=hash_password(editor_password),
+                role=Role.editor,
                 bio="Mediator and trainer. Writes on commercial dispute resolution.",
             )
             db.add(editor)
@@ -443,8 +460,11 @@ role is the harder ask.
         db.commit()
         print("Seeded:")
         print(f"  {len(events)} events, {len(notices)} notices, {len(articles)} articles, 3 pages")
-        print("  admin@maadhyam.local / ChangeMe!2026   (administrator)")
-        print("  editor@maadhyam.local / EditorPass!2026 (editor)")
+        if admin_password:
+            print(f"  admin@maadhyam.local  / {admin_password}  (administrator)")
+        if editor_password:
+            print(f"  editor@maadhyam.local / {editor_password} (editor)")
+        print("  Passwords are shown once. Change them after logging in.")
 
 
 if __name__ == "__main__":

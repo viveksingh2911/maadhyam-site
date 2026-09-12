@@ -1,6 +1,7 @@
 """FastAPI application entrypoint."""
 from __future__ import annotations
 
+import secrets
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -16,6 +17,27 @@ from .security import hash_password
 from .templating import render, templates
 
 
+def _bootstrap_password() -> str:
+    """The first administrator's password, or refuse to invent one in production."""
+    configured = settings.BOOTSTRAP_ADMIN_PASSWORD.strip()
+    if configured:
+        return configured
+    if settings.IS_PRODUCTION:
+        raise RuntimeError(
+            "BOOTSTRAP_ADMIN_PASSWORD is not set and no administrator exists yet. "
+            "Set it in the environment before first start; refusing to create an "
+            "account with a guessable password."
+        )
+    generated = secrets.token_urlsafe(18)
+    print("")
+    print("  No BOOTSTRAP_ADMIN_PASSWORD set. Created the first administrator with:")
+    print(f"    {settings.BOOTSTRAP_ADMIN_EMAIL}")
+    print(f"    {generated}")
+    print("  This is shown once. Change it after logging in.")
+    print("", flush=True)
+    return generated
+
+
 def bootstrap() -> None:
     """Create tables and, on a fresh install, the first administrator."""
     Base.metadata.create_all(bind=engine)
@@ -24,7 +46,7 @@ def bootstrap() -> None:
             db.add(User(
                 email=settings.BOOTSTRAP_ADMIN_EMAIL.lower(),
                 name=settings.BOOTSTRAP_ADMIN_NAME,
-                password_hash=hash_password(settings.BOOTSTRAP_ADMIN_PASSWORD),
+                password_hash=hash_password(_bootstrap_password()),
                 role=Role.admin,
                 is_active=True,
             ))

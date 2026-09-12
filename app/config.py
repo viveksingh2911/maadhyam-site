@@ -49,10 +49,17 @@ class Settings:
 
     ITEMS_PER_PAGE: int = 9
 
-    # First-run bootstrap account (change immediately after logging in).
+    # First-run bootstrap account. The password has no default on purpose: a
+    # built-in one ships a publicly known credential. Unset, development
+    # generates a random password and prints it once; production refuses to
+    # start. See bootstrap() in main.py.
     BOOTSTRAP_ADMIN_EMAIL: str = os.getenv("BOOTSTRAP_ADMIN_EMAIL", "admin@maadhyam.local")
-    BOOTSTRAP_ADMIN_PASSWORD: str = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "ChangeMe!2026")
+    BOOTSTRAP_ADMIN_PASSWORD: str = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "")
     BOOTSTRAP_ADMIN_NAME: str = os.getenv("BOOTSTRAP_ADMIN_NAME", "Site Administrator")
+
+    @property
+    def IS_PRODUCTION(self) -> bool:
+        return self.ENV.strip().lower() in {"production", "prod", "live"}
 
 
 settings = Settings()

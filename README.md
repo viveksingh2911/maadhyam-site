@@ -108,16 +108,23 @@ Or just run `start.ps1`, which does all of the above.
 - Public site: <http://127.0.0.1:8000>
 - Admin portal: <http://127.0.0.1:8000/admin>
 
-Seeded logins (change them immediately):
+### First login
 
-| Email | Password | Role |
-| --- | --- | --- |
-| `admin@maadhyam.local` | `ChangeMe!2026` | Administrator |
-| `editor@maadhyam.local` | `EditorPass!2026` | Editor |
+No password is built into the source. On a fresh database:
 
-`seed.py --reset` replaces the demo content. Skip `seed.py` entirely for an empty
-site — the first administrator is created from the `BOOTSTRAP_ADMIN_*` values in
-`.env` on first start.
+- **With `seed.py`** — two demo accounts are created, `admin@maadhyam.local` and
+  `editor@maadhyam.local`. Their passwords are generated and printed once when
+  the script runs. Set `SEED_ADMIN_PASSWORD` / `SEED_EDITOR_PASSWORD` beforehand
+  to choose them yourself.
+- **Without `seed.py`** — the first administrator comes from the
+  `BOOTSTRAP_ADMIN_*` values in `.env`. Leave `BOOTSTRAP_ADMIN_PASSWORD` empty in
+  development and one is generated and printed at startup. In production
+  (`ENV=production`) an unset password aborts startup rather than creating a
+  guessable account.
+
+Either way the password is shown once, on the console. Change it after logging in.
+
+`seed.py --reset` replaces the demo content.
 
 ---
 
