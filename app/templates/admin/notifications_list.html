@@ -28,7 +28,7 @@
   <div class="table-wrap">
     <table class="data">
       <thead>
-        <tr><th>Notice</th><th>Level</th><th>Status</th><th>Visible</th><th>Notice bar</th><th></th></tr>
+        <tr><th>Notice</th><th>Level</th><th>Status</th><th>Visible</th><th></th></tr>
       </thead>
       <tbody>
         {% for n in notices %}
@@ -46,7 +46,6 @@
             {{ n.published_at | fmt_date if n.published_at else 'not yet' }}
             {% if n.expires_at %}<div class="cell-sub">until {{ n.expires_at | fmt_date }}</div>{% endif %}
           </td>
-          <td class="small">{{ 'Yes' if n.show_in_ticker else 'No' }}</td>
           <td class="actions">
             <a class="btn btn-ghost btn-sm" href="/notifications/{{ n.slug }}" target="_blank" rel="noopener">View</a>
             <a class="btn btn-ghost btn-sm" href="/admin/notifications/{{ n.id }}/edit">Edit</a>
@@ -64,7 +63,7 @@
   {% else %}
   <div class="empty-state">
     <h3>No notices yet</h3>
-    <p>Notices appear in the notice bar at the top of every page and on the notice board.</p>
+    <p>Notices appear on the notice board at /notifications and on the home page.</p>
     <a class="btn mt-2" href="/admin/notifications/new">New notice</a>
   </div>
   {% endif %}

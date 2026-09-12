@@ -486,7 +486,6 @@ async def notification_save(request: Request, db: Session = Depends(get_db), use
     note.link_label = _f(form, "link_label") or None
     note.attachment = _f(form, "attachment") or None
     note.pinned = _flag(form, "pinned")
-    note.show_in_ticker = _flag(form, "show_in_ticker")
     note.starts_at = parse_dt(_f(form, "starts_at"))
     note.expires_at = parse_dt(_f(form, "expires_at"))
     note.status = _resolve_status(form)

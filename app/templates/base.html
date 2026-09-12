@@ -26,22 +26,6 @@
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
-{% if ticker %}
-<div class="ticker">
-  <div class="shell ticker-inner">
-    <span class="ticker-label"><span class="pulse"></span> Notices</span>
-    <div class="ticker-track">
-      <ul class="ticker-list">
-        {% for n in ticker %}
-        <li><a href="/notifications/{{ n.slug }}">{% if n.level.value != 'info' %}<strong>{{ n.level.value|capitalize }}:</strong> {% endif %}{{ n.title }}</a></li>
-        {% endfor %}
-      </ul>
-    </div>
-    <a class="ticker-all" href="/notifications">All notices</a>
-  </div>
-</div>
-{% endif %}
-
 <header class="site-header">
   <div class="shell">
     <div class="header-inner">

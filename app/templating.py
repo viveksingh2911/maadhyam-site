@@ -58,21 +58,6 @@ def nav_pages(db: Session) -> list[Page]:
     return list(db.execute(stmt).scalars())
 
 
-def ticker_notifications(db: Session, limit: int = 6) -> list[Notification]:
-    now = utcnow()
-    stmt = (
-        select(Notification)
-        .where(
-            Notification.status == Status.published,
-            Notification.show_in_ticker.is_(True),
-            (Notification.expires_at.is_(None)) | (Notification.expires_at > now),
-        )
-        .order_by(Notification.pinned.desc(), Notification.published_at.desc())
-        .limit(limit)
-    )
-    return list(db.execute(stmt).scalars())
-
-
 def base_context(request: Request, db: Session) -> dict:
     """Context every public template relies on."""
     cfg = load_settings(db)
@@ -80,7 +65,6 @@ def base_context(request: Request, db: Session) -> dict:
         "request": request,
         "cfg": cfg,
         "nav_pages": nav_pages(db),
-        "ticker": ticker_notifications(db),
         "analytics": {
             "ga_id": cfg.get("ga_measurement_id", "").strip(),
             "gtm_id": cfg.get("gtm_container_id", "").strip(),

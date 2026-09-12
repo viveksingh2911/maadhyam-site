@@ -220,6 +220,8 @@ class Notification(Base, TimestampMixin, SeoMixin):
     link_label: Mapped[str | None] = mapped_column(String(120))
     attachment: Mapped[str | None] = mapped_column(String(500))
     pinned: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Unused since the site-wide notice bar was removed; notices now live only
+    # on the notice board. Kept so the column need not be migrated away.
     show_in_ticker: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     starts_at: Mapped[datetime | None] = mapped_column(DateTime)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime)

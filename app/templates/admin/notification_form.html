@@ -34,7 +34,7 @@
         <div class="field">
           <label for="summary">Summary</label>
           <textarea class="textarea" id="summary" name="summary" rows="3" style="min-height:5rem"
-                    placeholder="The one-line version that appears on the notice board and in the notice bar.">{{ note.summary if note else '' }}</textarea>
+                    placeholder="The one-line version that appears on the notice board.">{{ note.summary if note else '' }}</textarea>
           <span class="counter" data-counter-for="summary" data-max="200" data-min="60"></span>
         </div>
 
@@ -76,7 +76,7 @@
             <option value="{{ l }}" {{ 'selected' if note and note.level.value == l }}>{{ l | capitalize }}</option>
             {% endfor %}
           </select>
-          <span class="hint">Important and urgent notices are colour-coded and labelled in the notice bar.</span>
+          <span class="hint">Important and urgent notices are colour-coded and labelled on the notice board.</span>
         </div>
 
         {{ seo.status_field(note) }}
@@ -96,10 +96,6 @@
         <label class="check">
           <input type="checkbox" name="pinned" value="1" {{ 'checked' if note and note.pinned }}>
           <span>Pin to the top<small>Stays first on the notice board.</small></span>
-        </label>
-        <label class="check">
-          <input type="checkbox" name="show_in_ticker" value="1" {{ 'checked' if not note or note.show_in_ticker }}>
-          <span>Show in the site-wide notice bar<small>The bar above the header on every page.</small></span>
         </label>
 
         <div class="row mt-2">

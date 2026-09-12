@@ -497,57 +497,6 @@
   }
   .mobile-nav a:hover { background: var(--surface-2); }
 
-  /* ---- Notification ticker -------------------------------------------- */
-  .ticker {
-    background: var(--surface-inv);
-    color: var(--text-invert);
-    font-size: 0.865rem;
-    overflow: hidden;
-  }
-  [data-theme="dark"] .ticker { color: var(--text-invert); }
-  .ticker-inner {
-    display: flex; flex-wrap: wrap; align-items: baseline;
-    gap: 0.4rem 1rem; min-height: 2.6rem; padding: 0.5rem 0;
-  }
-  .ticker-label {
-    display: inline-flex; align-items: center; gap: 0.45rem;
-    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase;
-    color: var(--accent-300);
-    flex: none;
-  }
-  .ticker-label .pulse {
-    width: 0.45rem; height: 0.45rem; border-radius: 50%;
-    background: var(--accent-500);
-    box-shadow: 0 0 0 0 color-mix(in oklch, var(--accent-500) 60%, transparent);
-    animation: pulse 2.4s var(--ease) infinite;
-  }
-  @keyframes pulse {
-    70% { box-shadow: 0 0 0 0.55rem transparent; }
-    100% { box-shadow: 0 0 0 0 transparent; }
-  }
-  /* Narrow screens: label + "All notices" share a row, notices sit below. */
-  .ticker-track { flex: 1 1 100%; min-width: 0; order: 3; }
-  .ticker-list {
-    display: flex; flex-wrap: wrap; gap: 0.35rem 1.6rem;
-    list-style: none; margin: 0; padding: 0;
-  }
-  .ticker-list li { display: flex; align-items: baseline; gap: 0.5rem; }
-  .ticker-list li::before {
-    content: ""; flex: none;
-    width: 0.28rem; height: 0.28rem; border-radius: 50%;
-    background: currentColor; opacity: 0.5;
-    transform: translateY(-0.15rem);
-  }
-  .ticker a { color: inherit; text-decoration: none; opacity: 0.92; }
-  .ticker a:hover { color: var(--accent-300); }
-  .ticker-all { flex: none; margin-left: auto; color: var(--accent-300); text-decoration: none; font-weight: 600; font-size: 0.78rem; }
-
-  @media (min-width: 60rem) {
-    .ticker-inner { flex-wrap: nowrap; }
-    .ticker-track { flex: 1 1 auto; order: 0; }
-    .ticker-all { margin-left: 0; }
-  }
-
   /* ---- Hero ----------------------------------------------------------- */
   .hero {
     position: relative;
